@@ -1,197 +1,105 @@
 <!DOCTYPE html>
-<script>
-  var password = prompt("ENTER GPD ACCESS CODE:");
-  if (password != "1042") { 
-      alert("ACCESS DENIED"); 
-      window.location.href = "https://www.google.com"; 
-  }
-</script>
-
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GPD | GLOBAL ARCHIVIST v24.1</title>
-    <style>
-        :root { 
-            --bg: #030507; --glass: rgba(10, 15, 20, 0.98); --border: #1a2a3a; 
-            --accent: #00f2ff; --success: #00ff95; --danger: #ff3c3c; --text: #a0c4d1; --warn: #ffcc00;
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GPD | GLOBAL ARCHIVIST</title>
+    <script>
+        // 1. SECURITY GATE
+        var password = prompt("ENTER GPD ACCESS CODE:");
+        if (password != "1042") { 
+            alert("ACCESS DENIED"); 
+            window.location.href = "https://www.google.com"; 
         }
-        body { background: var(--bg); color: var(--text); font-family: 'Courier New', monospace; padding: 10px; margin: 0; background-image: radial-gradient(circle at 50% 50%, #0d1a21 0%, #05080a 100%); }
-        .gpd-header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid var(--accent); padding-bottom: 10px; }
-        .badge { font-size: 3rem; text-shadow: 0 0 15px var(--accent); margin-bottom: 5px; }
-        .status-bar { font-size: 0.6rem; color: var(--success); letter-spacing: 2px; }
-        .hud-container { max-width: 600px; margin: auto; display: flex; flex-direction: column; gap: 15px; }
-        .module { background: var(--glass); border: 1px solid var(--border); padding: 20px; box-shadow: 0 5px 15px rgba(0,242,255,0.05); border-top: 2px solid var(--accent); position: relative; }
-        h2 { color: var(--accent); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 15px 0; border-bottom: 1px solid var(--border); padding-bottom: 5px;}
-        label { display: block; font-size: 0.65rem; color: var(--accent); margin-bottom: 5px; text-transform: uppercase; }
-        input { background: rgba(0,0,0,0.8); border: 1px solid var(--border); color: #fff; padding: 12px; width: 100%; box-sizing: border-box; font-size: 16px !important; border-radius: 2px; margin-bottom: 5px; font-family: inherit; outline: none; }
-        .search-container { position: relative; margin-bottom: 15px; }
-        .suggestions { position: absolute; top: 100%; left: 0; right: 0; background: #0a0f14; border: 1px solid var(--accent); z-index: 100; max-height: 250px; overflow-y: auto; display: none; }
-        .suggestion-item { padding: 12px; cursor: pointer; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
-        .suggestion-item:hover { background: var(--accent); color: #000; }
-        .btn { background: none; border: 1px solid var(--accent); color: var(--accent); padding: 12px; cursor: pointer; text-transform: uppercase; font-weight: bold; font-size: 0.8rem; }
-        .btn-add { background: var(--accent); color: #000; width: 100%; margin-top: 10px; border: none; }
-        .btn-log { background: var(--success); color: #000; border: none; width: 100%; font-size: 1rem; margin-top: 15px; font-weight: 900; }
-        .log-entry { background: rgba(0,0,0,0.4); border: 1px solid var(--border); padding: 12px; margin-bottom: 10px; border-left: 4px solid var(--accent); font-size: 0.75rem; word-wrap: break-word; }
-    </style>
+
+        // 2. CONFIGURATION (Using your token)
+        const GITHUB_TOKEN = "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";
+        const REPO_OWNER = "citizencash";
+        const REPO_NAME = "Gpd--terminal";
+        // Put your Discord Webhook URL between the quotes below
+        const DISCORD_WEBHOOK = "YOUR_DISCORD_WEBHOOK_HERE";
+
+        // 3. LOGGING FUNCTION (GitHub + Discord)
+        async function logCase() {
+            const officer = document.getElementById('officer').value;
+            const suspect = document.getElementById('suspect').value;
+            
+            if(!officer || !suspect) return alert("ALL FIELDS REQUIRED");
+
+            const caseData = {
+                officer: officer,
+                suspect: suspect,
+                timestamp: new Date().toLocaleString()
+            };
+
+            try {
+                // Save to GitHub database.json
+                const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/database.json`);
+                const file = await res.json();
+                const content = JSON.parse(atob(file.content));
+                content.push(caseData);
+
+                await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/database.json`, {
+                    method: "PUT",
+                    headers: { "Authorization": `token ${GITHUB_TOKEN}` },
+                    body: JSON.stringify({
+                        message: "GPD Archive Update",
+                        content: btoa(JSON.stringify(content)),
+                        sha: file.sha
+                    })
+                });
+
+                // Send to Discord
+                if (DISCORD_WEBHOOK !== "YOUR_DISCORD_WEBHOOK_HERE") {
+                    await fetch(DISCORD_WEBHOOK, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ content: `🚨 **NEW CASE LOGGED**\nOfficer: ${officer}\nSuspect: ${suspect}` })
+                    });
+                }
+
+                alert("CASE SECURED GLOBALLY");
+                location.reload(); 
+            } catch (err) {
+                alert("Archive Error: Check Connection");
+            }
+        }
+    </script>
 </head>
-<body>
-
-<div class="hud-container">
-    <div class="gpd-header">
-        <div class="badge">🛡️</div>
-        <div style="font-weight: bold; letter-spacing: 5px;">GPD GLOBAL ARCHIVIST</div>
-        <div class="status-bar">● GLOBAL ENCRYPTION ACTIVE</div>
-    </div>
-
-    <div class="module">
-        <h2>[ COMMAND TERMINAL ]</h2>
-        <div style="display:flex; gap:10px;">
-            <div style="flex:1">
-                <label>OFFICER</label>
-                <input type="text" id="officer" placeholder="Badge ID" onchange="saveOfc()">
-            </div>
-            <div style="flex:1">
-                <label>SUSPECT</label>
-                <input type="text" id="suspect" placeholder="Subject Name">
-            </div>
-        </div>
-        <label>SEARCH DATABASE</label>
-        <div class="search-container">
-            <input type="text" id="assetSearch" placeholder="Type to search..." onkeyup="filterAssets()">
-            <div id="suggestionBox" class="suggestions"></div>
-        </div>
-        <label>QUANTITY</label>
-        <div style="display:flex; gap:5px; margin-bottom:10px;">
-            <button class="btn" onclick="setQ(1)">1x</button>
-            <button class="btn" onclick="setQ(250)">250x</button>
-            <input type="number" id="qty" value="1" style="background:rgba(0,0,0,0.8); border:1px solid var(--border); color:#fff; width:100%; text-align:center;">
-        </div>
-        <button class="btn btn-add" onclick="addConfirmed()">ADD TO MANIFEST</button>
-    </div>
-
-    <div class="module">
-        <h2>[ SEIZURE MANIFEST ]</h2>
-        <table style="width:100%; font-size:0.8rem;">
-            <thead><tr><th align="left">ITEM</th><th align="left">QTY</th><th align="left">VALUE</th></tr></thead>
-            <tbody id="lockerBody"></tbody>
-        </table>
-        <div style="margin-top:20px; border-top:1px solid var(--border); padding-top:15px;">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span id="totalDisplay" style="font-size:1.5rem; font-weight:bold; color:var(--success);">0 U</span>
-                <button class="btn btn-log" style="width:200px;" onclick="archive()">LOG CASE</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="module">
-        <h2>[ GLOBAL ARCHIVES ]</h2>
-        <button class="btn" style="width:100%; margin-bottom:10px; font-size:0.6rem; border-color:var(--warn); color:var(--warn);" onclick="refreshGlobalData()">🔄 REFRESH DATA</button>
-        <div id="logBody">📡 Connecting to Global Cloud...</div>
-    </div>
-</div>
-
-<script>
-    // SECURE WEBHOOK AND CLOUD LINKS
-    const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1451250414711345154/wrdFC86oDRjxezwl1zZj5tgbdQncsVCfYv5NPdEjExeI6KbS6bxjQ-VTvmmdd3meQ2WY";
-    const GLOBAL_STORE_URL = "https://api.jsonbin.io/v3/b/658066571f568a44254c798d";
-    const MASTER_KEY = "$2a$10$YourKeyPlaceholder";
-
-    const database = [
-        { name: "AI Valve", val: 12000000 }, { name: "Activated Indium", val: 949 },
-        { name: "Gold", val: 353 }, { name: "Platinum", val: 505 }, { name: "Silver", val: 101 },
-        { name: "Storm Crystal", val: 129150 }, { name: "Hadal Core", val: 61000 },
-        { name: "Larval Core", val: 61000 }, { name: "Walker Brain", val: 35000 },
-        { name: "Gravitino Ball", val: 12500 }, { name: "NipNip Buds", val: 17776 },
-        { name: "GekNip", val: 20000 }, { name: "Stasis Device", val: 15600000 },
-        { name: "Circuit Board", val: 916250 }, { name: "Poly Fibre", val: 130000 }
-    ];
-
-    let locker = [];
-    let archiveData = [];
-    let selectedItem = null;
-
-    window.onload = () => {
-        document.getElementById('officer').value = localStorage.getItem('gpd_ofc_name') || '';
-        refreshGlobalData();
-    };
-
-    async function refreshGlobalData() {
-        try {
-            const resp = await fetch(GLOBAL_STORE_URL + "/latest", { headers: { "X-Master-Key": MASTER_KEY, "X-Bin-Meta": "false" } });
-            archiveData = await resp.json();
-            renderArchive();
-        } catch(e) { document.getElementById('logBody').innerHTML = "No Records Found."; }
-    }
-
-    async function archive() {
-        if (!locker.length) return alert("Manifest is empty.");
-        const ofc = document.getElementById('officer').value || "OFC. UNKNOWN";
-        const sus = document.getElementById('suspect').value || "SUS. UNKNOWN";
-        const totalVal = document.getElementById('totalDisplay').innerText;
-        const itemsSummary = locker.map(i => `${i.qty}x ${i.name}`).join(", ");
-
-        // LOG TO DISCORD
-        fetch(DISCORD_WEBHOOK_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ content: `🚨 **GLOBAL LOG** 🚨\n**OFFICER:** ${ofc}\n**SUSPECT:** ${sus}\n**TOTAL:** ${totalVal}\n**ITEMS:** ${itemsSummary}` })
-        });
-
-        // LOG TO CLOUD
-        archiveData.unshift({ ofc, sus, items: [...locker], total: totalVal, date: new Date().toLocaleTimeString() });
-        if(archiveData.length > 30) archiveData.pop();
-
-        await fetch(GLOBAL_STORE_URL, { 
-            method: 'PUT', 
-            headers: { 'Content-Type': 'application/json', "X-Master-Key": MASTER_KEY }, 
-            body: JSON.stringify(archiveData) 
-        });
+<body style="background:#030507; color:#00f2ff; font-family:monospace; padding:20px; text-transform:uppercase;">
+    <h2 style="border-bottom: 2px solid #00f2ff;">[ GPD COMMAND TERMINAL ]</h2>
+    
+    <div style="margin-top:20px;">
+        <label>OFFICER NAME:</label><br>
+        <input type="text" id="officer" style="background:#111; color:#0ff; border:1px solid #0ff; width:95%; padding:10px; margin-bottom:15px;">
         
-        locker = []; updateLocker(); renderArchive();
-        document.getElementById('suspect').value = '';
-    }
+        <label>SUSPECT NAME:</label><br>
+        <input type="text" id="suspect" style="background:#111; color:#0ff; border:1px solid #0ff; width:95%; padding:10px; margin-bottom:20px;">
+        
+        <button onclick="logCase()" style="background:#00ff95; color:#000; width:100%; padding:15px; font-weight:bold; border:none; cursor:pointer;">SUBMIT TO ARCHIVE</button>
+    </div>
 
-    function renderArchive() {
-        const body = document.getElementById('logBody');
-        body.innerHTML = '';
-        archiveData.forEach(h => {
-            const list = h.items.map(i => `${i.qty}x ${i.name}`).join(", ");
-            body.innerHTML += `<div class="log-entry">
-                <div style="color:var(--accent); font-size:0.6rem;">${h.ofc} | ${h.date}</div>
-                <div style="font-weight:bold;">SUSPECT: ${h.sus}</div>
-                <div style="opacity:0.8;">${list}</div>
-                <div style="color:var(--success); font-weight:bold;">${h.total}</div>
-            </div>`;
-        });
-    }
+    <div style="margin-top:40px;">
+        <h3 style="color:#ffb700;">[ GLOBAL ARCHIVE RECORDS ]</h3>
+        <div id="archive-list" style="border:1px solid #333; padding:10px; height:200px; overflow-y:scroll; font-size:0.8rem; background:#000;">
+            LOADING DATA...
+        </div>
+    </div>
 
-    function saveOfc() { localStorage.setItem('gpd_ofc_name', document.getElementById('officer').value); }
-    function setQ(n) { document.getElementById('qty').value = n; }
-    function filterAssets() {
-        const input = document.getElementById('assetSearch').value.toLowerCase();
-        const box = document.getElementById('suggestionBox'); box.innerHTML = '';
-        if (input.length < 1) { box.style.display = 'none'; return; }
-        const filtered = database.filter(item => item.name.toLowerCase().includes(input));
-        filtered.forEach(item => {
-            const div = document.createElement('div'); div.className = 'suggestion-item'; div.innerText = item.name;
-            div.onclick = () => { document.getElementById('assetSearch').value = item.name; selectedItem = item; box.style.display = 'none'; };
-            box.appendChild(div);
-        });
-        box.style.display = filtered.length > 0 ? 'block' : 'none';
-    }
-    function addConfirmed() {
-        const item = selectedItem || database.find(x => x.name.toLowerCase() === document.getElementById('assetSearch').value.toLowerCase());
-        if(!item) return alert("Asset not found.");
-        locker.push({ name: item.name, val: item.val, qty: parseInt(document.getElementById('qty').value) || 1 });
-        updateLocker();
-    }
-    function updateLocker() {
-        const body = document.getElementById('lockerBody'); let total = 0; body.innerHTML = '';
-        locker.forEach(item => { const sum = item.val * item.qty; total += sum; body.innerHTML += `<tr><td>${item.name}</td><td>x${item.qty}</td><td>${sum.toLocaleString()}</td></tr>`; });
-        document.getElementById('totalDisplay').innerText = total.toLocaleString() + " U";
-    }
-</script>
+    <script>
+        // Load the archive automatically
+        async function loadArchive() {
+            try {
+                const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/database.json`);
+                const file = await res.json();
+                const content = JSON.parse(atob(file.content));
+                const list = document.getElementById('archive-list');
+                list.innerHTML = content.reverse().map(c => `<div>> ${c.timestamp}<br>OFFICER: ${c.officer} / SUSPECT: ${c.suspect}</div><hr style="border:0.5px solid #222;">`).join('');
+            } catch (e) {
+                document.getElementById('archive-list').innerText = "NO RECORDS FOUND";
+            }
+        }
+        loadArchive();
+    </script>
 </body>
 </html>
