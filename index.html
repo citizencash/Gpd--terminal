@@ -5,89 +5,73 @@
     <title>GPD TERMINAL</title>
     <style>
         body { background:#030507; color:#00f2ff; font-family:monospace; padding:15px; text-transform:uppercase; }
-        .box { border: 2px solid #004c54; padding: 15px; margin-bottom: 20px; position: relative; }
-        .label { color: #007a8b; font-size: 0.7rem; margin-bottom: 5px; }
+        .box { border: 2px solid #004c54; padding: 15px; margin-bottom: 20px; }
         input { background: #0b0f13; border: 1px solid #004c54; color: #fff; width: 100%; padding: 10px; margin-bottom: 10px; box-sizing: border-box; }
-        button { background: #007a8b; border: none; color: #fff; width: 100%; padding: 12px; font-weight: bold; cursor: pointer; }
-        .log-btn { background: #00a33a; margin-top: 10px; }
-        .archive-box { border: 1px solid #1a1a1a; padding: 10px; min-height: 50px; font-size: 0.8rem; background: #000; }
+        button { background: #007a8b; border: none; color: #fff; width: 100%; padding: 12px; font-weight: bold; cursor: pointer; margin-top:5px; }
+        .log-btn { background: #00a33a; }
+        #archive-list { background: #000; padding: 10px; min-height: 50px; border: 1px solid #1a1a1a; font-size: 0.8rem; }
     </style>
 </head>
 <body>
     <div class="box">
-        <h3 style="margin-top:0;">[ COMMAND TERMINAL ]</h3>
-        <div class="label">OFFICER</div>
-        <input type="text" id="officer" placeholder="Sheriffbolt">
-        <div class="label">SUSPECT</div>
-        <input type="text" id="suspect" placeholder="Cat">
+        <h3>[ COMMAND TERMINAL ]</h3>
+        <input type="text" id="offName" placeholder="OFFICER NAME">
+        <input type="text" id="susName" placeholder="SUSPECT NAME">
         <button onclick="addToManifest()">ADD TO MANIFEST</button>
     </div>
 
     <div class="box">
-        <h3 style="margin-top:0;">[ SEIZURE MANIFEST ]</h3>
-        <div id="manifest-list" style="font-size:0.8rem; margin-bottom:15px;">(EMPTY)</div>
-        <button class="log-btn" onclick="submitToArchive()">LOG CASE</button>
+        <h3>[ SEIZURE MANIFEST ]</h3>
+        <div id="m-list" style="font-size:0.8rem; margin-bottom:10px;">(EMPTY)</div>
+        <button class="log-btn" onclick="saveArchive()">LOG CASE</button>
     </div>
 
     <div class="box">
-        <h3 style="margin-top:0;">[ GLOBAL ARCHIVES ]</h3>
-        <button style="background:transparent; border:1px solid #ffb700; color:#ffb700; font-size:0.6rem; margin-bottom:10px;" onclick="loadArchive()">🔄 REFRESH DATA</button>
-        <div id="archive-list" class="archive-box">LOADING...</div>
+        <h3>[ GLOBAL ARCHIVES ]</h3>
+        <div id="archive-list">CONNECTING...</div>
     </div>
 
     <script>
-        // 1. CONFIGURATION
-        const GITHUB_TOKEN = "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";
-        const REPO_OWNER = "citizencash";
-        const REPO_NAME = "Gpd--terminal";
+        const TOKEN = "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";
+        const REPO = "citizencash/Gpd--terminal";
+        let manifest = [];
 
-        // 2. MANIFEST LOGIC
-        let currentManifest = [];
         function addToManifest() {
-            const off = document.getElementById('officer').value;
-            const sus = document.getElementById('suspect').value;
-            if(!off || !sus) return alert("ENTER NAMES FIRST");
-            currentManifest.push(`CASE: ${off} VS ${sus}`);
-            document.getElementById('manifest-list').innerHTML = currentManifest.join('<br>');
+            const o = document.getElementById('offName').value;
+            const s = document.getElementById('susName').value;
+            if(!o || !s) return alert("ENTER NAMES FIRST");
+            manifest.push(`${o} vs ${s}`);
+            document.getElementById('m-list').innerHTML = manifest.join('<br>');
         }
 
-        // 3. THE ARCHIVE SAVE (THE FIX)
-        async function submitToArchive() {
-            if(currentManifest.length === 0) return alert("MANIFEST EMPTY");
-            const officer = document.getElementById('officer').value;
-            const suspect = document.getElementById('suspect').value;
+        async function saveArchive() {
+            if(manifest.length === 0) return alert("MANIFEST EMPTY");
+            const o = document.getElementById('offName').value;
+            const s = document.getElementById('susName').value;
 
             try {
-                const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/database.json`);
+                const res = await fetch(`https://api.github.com/repos/${REPO}/contents/database.json`);
                 const file = await res.json();
                 const content = JSON.parse(atob(file.content));
-                
-                content.push({ officer, suspect, time: new Date().toLocaleString() });
+                content.push({ officer: o, suspect: s, time: new Date().toLocaleString() });
 
-                await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/database.json`, {
+                const update = await fetch(`https://api.github.com/repos/${REPO}/contents/database.json`, {
                     method: "PUT",
-                    headers: { "Authorization": `token ${GITHUB_TOKEN}` },
-                    body: JSON.stringify({
-                        message: "Archive Update",
-                        content: btoa(JSON.stringify(content)),
-                        sha: file.sha
-                    })
+                    headers: { "Authorization": `token ${TOKEN}`, "Content-Type": "application/json" },
+                    body: JSON.stringify({ message: "Update", content: btoa(JSON.stringify(content)), sha: file.sha })
                 });
 
-                alert("SECURED IN GLOBAL ARCHIVE");
-                location.reload();
-            } catch (err) { alert("CONNECTION ERROR"); }
+                if(update.ok) { alert("SECURED"); location.reload(); }
+            } catch (e) { alert("SAVE FAILED"); }
         }
 
-        // 4. LOAD THE ARCHIVE
         async function loadArchive() {
             try {
-                const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/database.json`);
+                const res = await fetch(`https://api.github.com/repos/${REPO}/contents/database.json`);
                 const file = await res.json();
                 const data = JSON.parse(atob(file.content));
-                document.getElementById('archive-list').innerHTML = data.length ? 
-                    data.reverse().map(c => `> ${c.time}<br>${c.officer} BUSTED ${c.suspect}<hr style='border-color:#111'>`).join('') : "NO RECORDS FOUND";
-            } catch (e) { document.getElementById('archive-list').innerHTML = "OFFLINE"; }
+                document.getElementById('archive-list').innerHTML = data.reverse().map(c => `> ${c.time}<br>${c.officer} BUSTED ${c.suspect}<hr style='border-color:#111'>`).join('');
+            } catch (e) { document.getElementById('archive-list').innerHTML = "NO RECORDS"; }
         }
         window.onload = loadArchive;
     </script>
