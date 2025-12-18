@@ -12,94 +12,67 @@
             window.location.href = "https://www.google.com"; 
         }
 
-        // 2. CONFIGURATION (Using your token)
         const GITHUB_TOKEN = "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";
         const REPO_OWNER = "citizencash";
         const REPO_NAME = "Gpd--terminal";
-        // Put your Discord Webhook URL between the quotes below
-        const DISCORD_WEBHOOK = "YOUR_DISCORD_WEBHOOK_HERE";
 
-        // 3. LOGGING FUNCTION (GitHub + Discord)
         async function logCase() {
             const officer = document.getElementById('officer').value;
             const suspect = document.getElementById('suspect').value;
-            
-            if(!officer || !suspect) return alert("ALL FIELDS REQUIRED");
-
-            const caseData = {
-                officer: officer,
-                suspect: suspect,
-                timestamp: new Date().toLocaleString()
-            };
+            if(!officer || !suspect) return alert("FIELDS REQUIRED");
 
             try {
-                // Save to GitHub database.json
+                // Fetch the current database.json file
                 const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/database.json`);
                 const file = await res.json();
                 const content = JSON.parse(atob(file.content));
-                content.push(caseData);
+                
+                // Add the new case
+                content.push({ officer, suspect, time: new Date().toLocaleString() });
 
+                // Push back to GitHub
                 await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/database.json`, {
                     method: "PUT",
                     headers: { "Authorization": `token ${GITHUB_TOKEN}` },
                     body: JSON.stringify({
-                        message: "GPD Archive Update",
+                        message: "Archive Update",
                         content: btoa(JSON.stringify(content)),
                         sha: file.sha
                     })
                 });
 
-                // Send to Discord
-                if (DISCORD_WEBHOOK !== "YOUR_DISCORD_WEBHOOK_HERE") {
-                    await fetch(DISCORD_WEBHOOK, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ content: `🚨 **NEW CASE LOGGED**\nOfficer: ${officer}\nSuspect: ${suspect}` })
-                    });
-                }
-
-                alert("CASE SECURED GLOBALLY");
-                location.reload(); 
+                alert("SECURED IN GLOBAL ARCHIVE");
+                location.reload();
             } catch (err) {
-                alert("Archive Error: Check Connection");
+                alert("Connection Error. Check if database.json exists.");
             }
         }
-    </script>
-</head>
-<body style="background:#030507; color:#00f2ff; font-family:monospace; padding:20px; text-transform:uppercase;">
-    <h2 style="border-bottom: 2px solid #00f2ff;">[ GPD COMMAND TERMINAL ]</h2>
-    
-    <div style="margin-top:20px;">
-        <label>OFFICER NAME:</label><br>
-        <input type="text" id="officer" style="background:#111; color:#0ff; border:1px solid #0ff; width:95%; padding:10px; margin-bottom:15px;">
-        
-        <label>SUSPECT NAME:</label><br>
-        <input type="text" id="suspect" style="background:#111; color:#0ff; border:1px solid #0ff; width:95%; padding:10px; margin-bottom:20px;">
-        
-        <button onclick="logCase()" style="background:#00ff95; color:#000; width:100%; padding:15px; font-weight:bold; border:none; cursor:pointer;">SUBMIT TO ARCHIVE</button>
-    </div>
 
-    <div style="margin-top:40px;">
-        <h3 style="color:#ffb700;">[ GLOBAL ARCHIVE RECORDS ]</h3>
-        <div id="archive-list" style="border:1px solid #333; padding:10px; height:200px; overflow-y:scroll; font-size:0.8rem; background:#000;">
-            LOADING DATA...
-        </div>
-    </div>
-
-    <script>
-        // Load the archive automatically
         async function loadArchive() {
             try {
                 const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/database.json`);
                 const file = await res.json();
-                const content = JSON.parse(atob(file.content));
+                const data = JSON.parse(atob(file.content));
                 const list = document.getElementById('archive-list');
-                list.innerHTML = content.reverse().map(c => `<div>> ${c.timestamp}<br>OFFICER: ${c.officer} / SUSPECT: ${c.suspect}</div><hr style="border:0.5px solid #222;">`).join('');
+                if(data.length === 0) {
+                    list.innerHTML = "NO RECORDS FOUND";
+                } else {
+                    list.innerHTML = data.reverse().map(c => `<div>> ${c.time}<br>OFFICER: ${c.officer} | SUSPECT: ${c.suspect}</div><hr>`).join('');
+                }
             } catch (e) {
-                document.getElementById('archive-list').innerText = "NO RECORDS FOUND";
+                document.getElementById('archive-list').innerHTML = "ARCHIVE OFFLINE";
             }
         }
-        loadArchive();
+        window.onload = loadArchive;
     </script>
+</head>
+<body style="background:#030507; color:#00f2ff; font-family:monospace; padding:15px; text-transform:uppercase;">
+    <h2>[ GPD TERMINAL ]</h2>
+    <input type="text" id="officer" placeholder="OFFICER NAME" style="background:#000; color:#0ff; border:1px solid #0ff; width:90%; padding:10px; margin-bottom:10px;">
+    <input type="text" id="suspect" placeholder="SUSPECT NAME" style="background:#000; color:#0ff; border:1px solid #0ff; width:90%; padding:10px; margin-bottom:10px;">
+    <button onclick="logCase()" style="background:#00ff95; color:#000; width:95%; padding:15px; font-weight:bold;">LOG CASE</button>
+
+    <h3 style="margin-top:30px; color:#ffb700;">[ GLOBAL ARCHIVE ]</h3>
+    <div id="archive-list" style="border:1px solid #333; padding:10px; background:#000; min-height:100px;">LOADING...</div>
 </body>
 </html>
