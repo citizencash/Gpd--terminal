@@ -2,116 +2,236 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GPD | GLOBAL ARCHIVIST</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GPD | ARCHIVIST v21.9 GLOBAL</title>
     <style>
-        :root { --gpd-cyan: #00f2ff; --gpd-green: #00ff44; --gpd-dark: #030507; --gpd-border: #004c54; }
-        body { background: var(--gpd-dark); color: var(--gpd-cyan); font-family: 'Courier New', monospace; margin: 0; padding: 15px; text-transform: uppercase; }
+        :root { 
+            --bg: #030507; --glass: rgba(10, 15, 20, 0.98); --border: #1a2a3a; 
+            --accent: #00f2ff; --success: #00ff95; --danger: #ff3c3c; --text: #a0c4d1; --warn: #ffcc00;
+        }
         
-        .header { text-align: center; border-bottom: 2px solid var(--gpd-cyan); padding-bottom: 10px; margin-bottom: 20px; }
-        .sync-status { color: var(--gpd-green); font-size: 0.6rem; letter-spacing: 2px; }
+        body { 
+            background: var(--bg); color: var(--text); font-family: 'Courier New', monospace; 
+            padding: 10px; margin: 0; background-image: radial-gradient(circle at 50% 50%, #0d1a21 0%, #05080a 100%);
+        }
 
-        .container { border: 1px solid var(--gpd-border); padding: 15px; background: #050a10; margin-bottom: 15px; }
-        h3 { font-size: 0.9rem; margin-top: 0; color: var(--gpd-cyan); letter-spacing: 3px; border-bottom: 1px solid #111; padding-bottom: 10px; }
-        
-        .input-row { display: flex; gap: 10px; margin-bottom: 10px; }
-        .input-group { flex: 1; }
-        label { font-size: 0.6rem; color: #004c54; display: block; margin-bottom: 5px; }
-        
-        input { background: #0e161d; border: 1px solid #1a2a35; color: #fff; width: 100%; padding: 12px; box-sizing: border-box; font-family: monospace; outline: none; }
-        
-        .btn-manifest { background: #007a8b; border: none; color: #fff; width: 100%; padding: 15px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .btn-log { background: #008f11; border: none; color: #fff; width: 100%; padding: 15px; font-weight: bold; cursor: pointer; }
+        .hud-container { max-width: 600px; margin: auto; display: flex; flex-direction: column; gap: 15px; }
 
-        .archive-box { background: #000; padding: 10px; font-size: 0.8rem; color: #888; min-height: 50px; border-top: 1px solid #111; max-height: 250px; overflow-y: auto; }
-        .log-entry { border-bottom: 1px solid #111; padding: 10px 0; }
-        .log-time { color: #333; font-size: 0.6rem; display: block; }
+        .module { 
+            background: var(--glass); border: 1px solid var(--border); padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8); border-top: 2px solid var(--accent);
+        }
+
+        h2 { color: var(--accent); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 15px 0; border-bottom: 1px solid var(--border); padding-bottom: 5px;}
+
+        label { display: block; font-size: 0.65rem; color: var(--accent); margin-bottom: 5px; text-transform: uppercase; }
+
+        input, textarea { 
+            background: rgba(0,0,0,0.8); border: 1px solid var(--border); color: #fff; 
+            padding: 12px; width: 100%; box-sizing: border-box; font-size: 16px !important; border-radius: 2px; margin-bottom: 5px;
+            font-family: inherit;
+        }
+
+        .search-container { position: relative; margin-bottom: 15px; }
+        .suggestions { 
+            position: absolute; top: 100%; left: 0; right: 0; 
+            background: #0a0f14; border: 1px solid var(--accent); z-index: 100;
+            max-height: 250px; overflow-y: auto; display: none;
+        }
+        .suggestion-item { padding: 12px; cursor: pointer; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+        .suggestion-item:hover { background: var(--accent); color: #000; }
+
+        .btn { 
+            background: none; border: 1px solid var(--accent); color: var(--accent); 
+            padding: 12px; cursor: pointer; text-transform: uppercase; font-weight: bold; font-size: 0.8rem;
+        }
+        .btn-add { background: var(--accent); color: #000; width: 100%; margin-top: 10px; border: none; }
+        .btn-log { background: var(--success); color: #000; border: none; width: 100%; font-size: 1rem; margin-top: 15px; }
+        .btn-retrieve { font-size: 0.6rem; border: 1px solid var(--warn); color: var(--warn); padding: 4px 8px; }
+        .btn-danger { color: #ff3c3c; border: 1px solid #ff3c3c; width: 100%; margin-top: 20px; opacity: 0.6; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.8rem; }
+        th { text-align: left; color: var(--accent); padding: 10px; border-bottom: 1px solid var(--border); }
+        td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+
+        .log-entry { background: rgba(0,0,0,0.4); border: 1px solid var(--border); padding: 12px; margin-bottom: 10px; border-left: 4px solid var(--accent); font-size: 0.75rem; word-wrap: break-word; }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <div style="letter-spacing: 5px; font-size: 1.2rem;">GPD GLOBAL ARCHIVIST</div>
-        <div class="sync-status">● GLOBAL SYNC ACTIVE</div>
-    </div>
-
-    <div class="container">
-        <h3>[ COMMAND TERMINAL ]</h3>
-        <div class="input-row">
-            <div class="input-group">
+<div class="hud-container">
+    <div class="module">
+        <h2>[ COMMAND TERMINAL ]</h2>
+        <div style="display:flex; gap:10px;">
+            <div style="flex:1">
                 <label>OFFICER</label>
-                <input type="text" id="off_name" placeholder="Badge ID">
+                <input type="text" id="officer" placeholder="Badge ID" onchange="saveOfc()">
             </div>
-            <div class="input-group">
+            <div style="flex:1">
                 <label>SUSPECT</label>
-                <input type="text" id="sus_name" placeholder="Subject Name">
+                <input type="text" id="suspect" placeholder="Subject Name">
             </div>
         </div>
+
         <label>SEARCH DATABASE</label>
-        <input type="text" placeholder="Type to search...">
-        <button class="btn-manifest">ADD TO MANIFEST</button>
-    </div>
-
-    <div class="container">
-        <h3>[ SEIZURE MANIFEST ]</h3>
-        <div style="display: flex; justify-content: space-between; font-size: 0.6rem; color: #444; margin-bottom: 20px;">
-            <span>ITEM</span><span>QTY</span><span>VALUE</span>
+        <div class="search-container">
+            <input type="text" id="assetSearch" placeholder="Type to search..." onkeyup="filterAssets()">
+            <div id="suggestionBox" class="suggestions"></div>
         </div>
-        <div style="display: flex; gap: 20px; align-items: center;">
-            <div style="font-size: 2rem; color: var(--gpd-green);">0 U</div>
-            <button class="btn-log" onclick="logCase()">LOG CASE</button>
+
+        <label>QUANTITY</label>
+        <div style="display:flex; gap:5px; margin-bottom:10px;">
+            <button class="btn" onclick="setQ(1)">1x</button>
+            <button class="btn" onclick="setQ(250)">250x</button>
+            <input type="number" id="qty" value="1" style="background:rgba(0,0,0,0.8); border:1px solid var(--border); color:#fff; width:100%; text-align:center;">
+        </div>
+        <button class="btn btn-add" onclick="addConfirmed()">ADD TO MANIFEST</button>
+    </div>
+
+    <div class="module">
+        <h2>[ SEIZURE MANIFEST ]</h2>
+        <table id="manifestTable">
+            <thead><tr><th>ITEM</th><th>QTY</th><th>VALUE</th><th>X</th></tr></thead>
+            <tbody id="lockerBody"></tbody>
+        </table>
+        
+        <div style="margin-top:20px; border-top:1px solid var(--border); padding-top:15px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span id="totalDisplay" style="font-size:1.5rem; font-weight:bold; color:var(--success);">0 U</span>
+                <button class="btn btn-log" style="width:200px;" onclick="archive()">LOG CASE</button>
+            </div>
         </div>
     </div>
 
-    <div class="container">
-        <h3>[ GLOBAL ARCHIVES ]</h3>
-        <div id="archive-list" class="archive-box">Syncing records...</div>
+    <div class="module">
+        <h2>[ PRECINCT ARCHIVES ]</h2>
+        <div id="logBody">SYNCING WITH GLOBAL DATABASE...</div>
+        <button class="btn btn-danger" onclick="wipeAll()">WIPE LOCAL VIEW ONLY</button>
     </div>
+</div>
 
-    <script>
-        // Your Verified API link
-        const API_URL = "https://sheetdb.io/api/v1/sn9w3fnrrq26j";
+<script>
+    const database = [
+        { name: "AI Valve", val: 12000000 }, { name: "Activated Indium", val: 949 },
+        { name: "Gold", val: 353 }, { name: "Platinum", val: 505 }, { name: "Silver", val: 101 },
+        { name: "Storm Crystal", val: 129150 }, { name: "Hadal Core", val: 61000 },
+        { name: "Larval Core", val: 61000 }, { name: "Walker Brain", val: 35000 },
+        { name: "Gravitino Ball", val: 12500 }, { name: "NipNip Buds", val: 17776 },
+        { name: "GekNip", val: 20000 }, { name: "Stasis Device", val: 15600000 },
+        { name: "Circuit Board", val: 916250 }, { name: "Poly Fibre", val: 130000 },
+        { name: "Delicious Vegetable Stew", val: 18000 }, { name: "Meaty Stew", val: 15000 }
+    ];
 
-        async function logCase() {
-            const o = document.getElementById('off_name').value.trim();
-            const s = document.getElementById('sus_name').value.trim();
-            if(!o || !s) return alert("REQUIRED: OFFICER ID & SUBJECT NAME");
+    // GLOBAL API CONFIG
+    const API_URL = "https://sheetdb.io/api/v1/sn9w3fnrrq26j";
 
-            try {
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        data: [{ "officer": o, "suspect": s, "timestamp": new Date().toLocaleString() }]
-                    })
-                });
-                if(response.ok) {
-                    alert("REPORT SECURED GLOBALLY");
-                    location.reload();
-                }
-            } catch (e) { alert("CONNECTION FAILED"); }
-        }
+    let locker = [];
+    let selectedItem = null;
 
-        async function loadArchive() {
-            try {
-                const res = await fetch(API_URL);
-                const data = await res.json();
-                if(data.length > 0) {
-                    // Filter and reverse data for the list
-                    document.getElementById('archive-list').innerHTML = data.reverse()
-                    .filter(c => c.officer && c.suspect)
-                    .map(c => `
-                        <div class="log-entry">
-                            <span class="log-time">${c.timestamp || "RECENT"}</span>
-                            OFFICER <b>${c.officer}</b> BUSTED <b>${c.suspect}</b>
-                        </div>
-                    `).join('');
-                } else {
-                    document.getElementById('archive-list').innerHTML = "No Global Records Found.";
-                }
-            } catch (e) { document.getElementById('archive-list').innerHTML = "OFFLINE"; }
-        }
-        window.onload = loadArchive;
-    </script>
+    window.onload = () => {
+        document.getElementById('officer').value = localStorage.getItem('gpd_ofc_name') || '';
+        renderArchive(); // Now pulls from Google Sheets
+    };
+
+    function saveOfc() { localStorage.setItem('gpd_ofc_name', document.getElementById('officer').value); }
+    function setQ(n) { document.getElementById('qty').value = n; }
+
+    function filterAssets() {
+        const input = document.getElementById('assetSearch').value.toLowerCase();
+        const box = document.getElementById('suggestionBox');
+        box.innerHTML = '';
+        if (input.length < 1) { box.style.display = 'none'; return; }
+        const filtered = database.filter(item => item.name.toLowerCase().includes(input));
+        if (filtered.length > 0) {
+            box.style.display = 'block';
+            filtered.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'suggestion-item';
+                div.innerText = item.name;
+                div.onclick = () => {
+                    document.getElementById('assetSearch').value = item.name;
+                    selectedItem = item;
+                    box.style.display = 'none';
+                };
+                box.appendChild(div);
+            });
+        } else { box.style.display = 'none'; }
+    }
+
+    function addConfirmed() {
+        const nameInput = document.getElementById('assetSearch').value;
+        const item = selectedItem || database.find(x => x.name.toLowerCase() === nameInput.toLowerCase());
+        if(!item) return alert("Asset not found.");
+        const q = parseInt(document.getElementById('qty').value) || 1;
+        const existing = locker.find(x => x.name === item.name);
+        if (existing) existing.qty += q;
+        else locker.push({ name: item.name, val: item.val, qty: q });
+        document.getElementById('assetSearch').value = '';
+        selectedItem = null;
+        updateLocker();
+    }
+
+    function updateLocker() {
+        const body = document.getElementById('lockerBody');
+        let total = 0; body.innerHTML = '';
+        locker.forEach((item, idx) => {
+            const sum = item.val * item.qty; total += sum;
+            body.innerHTML += `<tr>
+                <td>${item.name}</td>
+                <td>x${item.qty}</td>
+                <td style="color:var(--success)">${sum.toLocaleString()}</td>
+                <td style="color:var(--danger); cursor:pointer;" onclick="locker.splice(${idx},1);updateLocker();">X</td>
+            </tr>`;
+        });
+        document.getElementById('totalDisplay').innerText = total.toLocaleString() + " U";
+    }
+
+    // UPDATED FOR GLOBAL SYNC
+    async function archive() {
+        const ofc = document.getElementById('officer').value || "OFC. UNKNOWN";
+        const sus = document.getElementById('suspect').value || "SUS. UNKNOWN";
+        if (!locker.length) return alert("Manifest is empty.");
+
+        const logString = locker.map(i => `${i.qty}x ${i.name}`).join(", ");
+        const totalVal = document.getElementById('totalDisplay').innerText;
+
+        try {
+            await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    data: [{
+                        officer: ofc,
+                        suspect: `${sus} (${logString})`, // Combined for detail
+                        timestamp: new Date().toLocaleString()
+                    }]
+                })
+            });
+            alert("SUCCESS: COMMITTED TO GLOBAL PRECINCT RECORDS");
+            locker = []; updateLocker(); renderArchive();
+            document.getElementById('suspect').value = '';
+        } catch (e) { alert("SYNC ERROR: Check Connection"); }
+    }
+
+    // PULLS FROM GOOGLE SHEETS
+    async function renderArchive() {
+        const body = document.getElementById('logBody');
+        try {
+            const res = await fetch(API_URL);
+            const data = await res.json();
+            if(!data.length) { body.innerHTML = "NO RECORDS FOUND."; return; }
+            
+            body.innerHTML = '';
+            data.reverse().filter(h => h.officer && h.suspect).forEach((h, idx) => {
+                body.innerHTML += `<div class="log-entry">
+                    <div style="color:var(--accent); font-size:0.6rem;">${h.officer} | ${h.timestamp}</div>
+                    <div style="font-weight:bold; margin-bottom:5px;">${h.suspect}</div>
+                </div>`;
+            });
+        } catch (e) { body.innerHTML = "CONNECTION ERROR: ARCHIVES UNREACHABLE"; }
+    }
+
+    function wipeAll() { if(confirm("CLEAR LOCAL VIEW? (Does not delete Google Sheets)")) { renderArchive(); } }
+</script>
 </body>
 </html>
