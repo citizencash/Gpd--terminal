@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>APSD | EVIDENCE ROOM v3.5</title>
+    <title>APSD | EVIDENCE ROOM v3.6</title>
     <style>
         :root { 
             --bg: #05080a; --glass: rgba(12, 20, 28, 0.95); --border: #2a3f52; 
@@ -25,7 +25,7 @@
             background: var(--glass); border: 1px solid var(--border); padding: 20px; position: relative;
             box-shadow: inset 0 0 15px rgba(0,242,255,0.1); clip-path: polygon(0 0, 95% 0, 100% 5%, 100% 100%, 5% 100%, 0 95%);
         }
-        .module::after { content: "APSD_HYBRID_LINK"; position: absolute; top: 5px; right: 15px; font-size: 0.5rem; color: var(--border); }
+        .module::after { content: "APSD_ENCRYPTED_UPLINK"; position: absolute; top: 5px; right: 15px; font-size: 0.5rem; color: var(--border); }
         h2 { color: var(--accent); font-size: 1rem; text-transform: uppercase; letter-spacing: 3px; margin: 0 0 20px 0; display: flex; align-items: center; }
         h2::before { content: "► "; font-size: 0.8rem; margin-right: 10px; }
         label { display: block; font-size: 0.65rem; color: var(--accent); margin-bottom: 8px; text-transform: uppercase; font-weight: bold; }
@@ -37,27 +37,27 @@
         th { text-align: left; color: var(--accent); padding: 12px; border-bottom: 2px solid var(--border); }
         td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .evidence-tag { background: rgba(0,10,20,0.8); border-left: 5px solid var(--accent); padding: 15px; margin-bottom: 15px; position: relative; border-radius: 0 4px 4px 0; }
-        #uplink-status { font-size: 0.6rem; text-align: right; margin-bottom: 5px; color: var(--accent); text-shadow: 0 0 5px var(--accent); }
+        #uplink-status { font-size: 0.6rem; text-align: right; margin-bottom: 5px; color: var(--accent); text-shadow: 0 0 5px var(--accent); transition: 0.3s; }
         .search-container { position: relative; }
         .suggestions { position: absolute; top: 100%; left: 0; right: 0; background: #0a151f; border: 1px solid var(--accent); z-index: 100; max-height: 250px; overflow-y: auto; display: none; box-shadow: 0 10px 30px #000; }
         .suggestion-item { padding: 15px; border-bottom: 1px solid var(--border); cursor: pointer; }
         .suggestion-item:hover { background: var(--accent); color: #000; }
-        .btn-danger { width: 100%; color: var(--danger); border: 1px solid var(--danger); margin-top: 20px; font-size: 0.7rem; opacity: 0.5; }
+        .btn-danger { width: 100%; color: var(--danger); border: 1px solid var(--danger); margin-top: 20px; font-size: 0.7rem; font-weight: bold; cursor: pointer; padding: 10px; }
     </style>
 </head>
 <body>
 
 <div class="hud-container">
     <div class="module">
-        <h2>[ APSD COMMAND TERMINAL ]</h2>
+        <h2>[ COMMAND TERMINAL ]</h2>
         <div id="uplink-status">SYSTEM_READY // UPLINK_STABLE</div>
         <div style="display:flex; gap:10px;">
-            <div style="flex:1"><label>OFFICER_ID</label><input type="text" id="officer" placeholder="Badge" onchange="saveOfc()"></div>
+            <div style="flex:1"><label>ENFORCER_ID</label><input type="text" id="officer" placeholder="Badge" onchange="saveOfc()"></div>
             <div style="flex:1"><label>SUBJECT</label><input type="text" id="suspect" placeholder="Name"></div>
         </div>
-        <label>ASSET_SCANNER (TYPE OR SELECT)</label>
+        <label>ASSET_SCANNER (HYBRID INPUT)</label>
         <div class="search-container">
-            <input type="text" id="assetSearch" placeholder="Enter asset name..." onkeyup="filterAssets()">
+            <input type="text" id="assetSearch" placeholder="Scan or type asset..." onkeyup="filterAssets()">
             <div id="suggestionBox" class="suggestions"></div>
         </div>
         <label>QUANTITY</label>
@@ -67,7 +67,7 @@
 
     <div class="module">
         <h2>[ SEIZURE MANIFEST ]</h2>
-        <table id="manifestTable"><thead><tr><th>ASSET</th><th>QTY</th><th>EST_VALUE</th><th>X</th></tr></thead><tbody id="lockerBody"></tbody></table>
+        <table id="manifestTable"><thead><tr><th>ASSET</th><th>QTY</th><th>VAL_EST</th><th>X</th></tr></thead><tbody id="lockerBody"></tbody></table>
         <div style="margin-top:20px; border-top:1px solid var(--border); padding-top:20px; display:flex; justify-content:space-between; align-items:center;">
             <div><label style="margin:0">TOTAL_RECOVERED</label><div id="totalDisplay" style="font-size:1.4rem; color:var(--success); font-weight:bold;">0 U</div></div>
             <button class="btn btn-log" id="logBtn" onclick="archive()">SECURE & LOG</button>
@@ -76,22 +76,19 @@
 
     <div class="module">
         <h2>[ APSD EVIDENCE ROOM ]</h2><div id="logBody"></div>
-        <button class="btn btn-danger" onclick="wipeAll()">PURGE ALL RECORDS</button>
+        <button class="btn btn-danger" onclick="wipeAll()">SECURE WIPE (REQUIRES PIN)</button>
     </div>
 </div>
 
 <script>
     const UPLINK_URL = 'https://script.google.com/macros/s/AKfycbzVs4oRFjYlZq0_1TEYw3AVx8CZVcVZvO04Gf8CeYjkFfZFSowJndnI4bY_7KTiN-xaRg/exec';
+    const SECURE_PIN = "APSD_SECURE_2025"; // Change this whenever needed
 
     const database = [
         { name: "AI Valve", val: 12000000 }, { name: "Stasis Device", val: 15600000 }, { name: "Fusion Ignitor", val: 15600000 },
-        { name: "NipNip Buds", val: 17776 }, { name: "GekNip", val: 20000 }, { name: "Banned Weapons", val: 85000 },
-        { name: "Counterfeit Circuits", val: 65000 }, { name: "Gravitino Ball", val: 12500 }, { name: "Storm Crystal", val: 129150 },
-        { name: "Hadal Core", val: 61000 }, { name: "Larval Core", val: 61000 }, { name: "Walker Brain", val: 35000 },
-        { name: "Gold", val: 353 }, { name: "Platinum", val: 505 }, { name: "Silver", val: 101 },
-        { name: "Activated Indium", val: 949 }, { name: "Indium", val: 464 }, { name: "Chromatic Metal", val: 245 },
-        { name: "Pure Ferrite", val: 28 }, { name: "Carbon", val: 7 }, { name: "Sodium Nitrate", val: 41 },
-        { name: "Ancient Bone", val: 150000 }, { name: "Salvaged Scrap", val: 200000 }, { name: "Salvaged Data", val: 52000 }
+        { name: "NipNip Buds", val: 17776 }, { name: "GekNip", val: 20000 }, { name: "Storm Crystal", val: 129150 },
+        { name: "Gold", val: 353 }, { name: "Platinum", val: 505 }, { name: "Chromatic Metal", val: 245 },
+        { name: "Hadal Core", val: 61000 }, { name: "Walker Brain", val: 35000 }, { name: "Banned Weapons", val: 85000 }
     ];
 
     let locker = [], archiveData = JSON.parse(localStorage.getItem('gpd_apsd_v3_data')) || [], selectedItem = null;
@@ -111,33 +108,17 @@
                 div.onclick = () => { document.getElementById('assetSearch').value = item.name; selectedItem = item; box.style.display = 'none'; };
                 box.appendChild(div);
             });
-        } else { box.style.display = 'none'; }
+        }
     }
 
     function addConfirmed() {
         const rawName = document.getElementById('assetSearch').value.trim();
         if (!rawName) return;
-
-        // CHECK IF IT'S IN THE DATABASE FIRST
-        let item = selectedItem || database.find(x => x.name.toLowerCase() === rawName.toLowerCase());
-        
-        // IF NOT IN DB, CREATE A CUSTOM ASSET
-        if(!item) {
-            item = { name: rawName, val: 0 }; 
-        }
-
+        let item = selectedItem || database.find(x => x.name.toLowerCase() === rawName.toLowerCase()) || { name: rawName, val: 0 };
         const q = parseInt(document.getElementById('qty').value) || 1;
         const exist = locker.find(x => x.name.toLowerCase() === item.name.toLowerCase());
-        
-        if (exist) {
-            exist.qty += q;
-        } else {
-            locker.push({ name: item.name, val: item.val, qty: q });
-        }
-
-        document.getElementById('assetSearch').value = ''; 
-        selectedItem = null; 
-        updateLocker();
+        if (exist) exist.qty += q; else locker.push({ name: item.name, val: item.val, qty: q });
+        document.getElementById('assetSearch').value = ''; selectedItem = null; updateLocker();
     }
 
     function updateLocker() {
@@ -152,15 +133,11 @@
     async function archive() {
         if (!locker.length) return;
         const btn = document.getElementById('logBtn'); const status = document.getElementById('uplink-status');
-        const record = {
-            ofc: document.getElementById('officer').value || "ANON", sus: document.getElementById('suspect').value || "UNIDENTIFIED",
-            items: [...locker], total: document.getElementById('totalDisplay').innerText, date: new Date().toLocaleString()
-        };
+        const record = { ofc: document.getElementById('officer').value || "ANON", sus: document.getElementById('suspect').value || "UNIDENTIFIED", items: [...locker], total: document.getElementById('totalDisplay').innerText, date: new Date().toLocaleString() };
         archiveData.unshift(record); localStorage.setItem('gpd_apsd_v3_data', JSON.stringify(archiveData));
         btn.innerText = "UPLINKING..."; status.innerText = "TRANSFERRING_TO_MANHATTAN...";
         try {
-            const p = new URLSearchParams(); p.append('officer', record.ofc); p.append('suspect', record.sus);
-            p.append('timestamp', record.date); p.append('manifest', record.items.map(i => `${i.qty}x ${i.name}`).join(", "));
+            const p = new URLSearchParams(); p.append('officer', record.ofc); p.append('suspect', record.sus); p.append('timestamp', record.date); p.append('manifest', record.items.map(i => `${i.qty}x ${i.name}`).join(", "));
             await fetch(UPLINK_URL, { method: 'POST', mode: 'no-cors', body: p });
             status.innerText = "UPLINK_SUCCESSFUL"; status.style.color = "var(--success)";
         } catch (e) { status.innerText = "UPLINK_OFFLINE"; status.style.color = "var(--danger)"; }
@@ -181,7 +158,28 @@
         localStorage.setItem('gpd_apsd_v3_data', JSON.stringify(archiveData)); updateLocker(); renderArchive();
     }
 
-    function wipeAll() { if(confirm("PURGE ALL EVIDENCE DATA?")) { archiveData = []; localStorage.removeItem('gpd_apsd_v3_data'); renderArchive(); } }
+    function wipeAll() {
+        const status = document.getElementById('uplink-status');
+        const pass = prompt("ENTER LEVEL 4 SECURITY PIN TO PURGE ARCHIVES:");
+        
+        if (pass === SECURE_PIN) {
+            if(confirm("PIN ACCEPTED. ARE YOU ABSOLUTELY SURE? THIS ACTION IS PERMANENT.")) {
+                archiveData = []; 
+                localStorage.removeItem('gpd_apsd_v3_data'); 
+                renderArchive();
+                status.innerText = "ARCHIVE_PURGED_SUCCESSFULLY";
+                status.style.color = "var(--warn)";
+            }
+        } else {
+            alert("UNAUTHORIZED ACCESS DETECTED. PURGE ABORTED.");
+            status.innerText = "PURGE_ABORTED_UNAUTHORIZED_USER";
+            status.style.color = "var(--danger)";
+        }
+        setTimeout(() => { 
+            status.innerText = "SYSTEM_READY // UPLINK_STABLE"; 
+            status.style.color = "var(--accent)"; 
+        }, 4000);
+    }
 </script>
 </body>
 </html>
