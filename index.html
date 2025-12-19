@@ -6,7 +6,7 @@
     <style>
         body { background:#030507; color:#00f2ff; font-family:monospace; padding:15px; text-transform:uppercase; }
         .box { border: 2px solid #004c54; padding: 15px; margin-bottom: 20px; background:#050a0f; }
-        input { background: #000; border: 1px solid #004c54; color: #fff; width: 100%; padding: 12px; margin-bottom: 12px; box-sizing: border-box; font-family:monospace; }
+        input { background: #000; border: 1px solid #004c54; color: #fff; width: 100%; padding: 12px; margin-bottom: 12px; box-sizing: border-box; }
         button { background: #007a8b; border: none; color: #fff; width: 100%; padding: 15px; font-weight: bold; cursor: pointer; }
         #archive-list { background: #000; padding: 10px; border: 1px solid #1a1a1a; font-size: 0.75rem; color: #aaa; }
     </style>
@@ -18,31 +18,35 @@
         <input type="text" id="sus_name" placeholder="SUSPECT NAME">
         <button onclick="logCase()">LOG CASE GLOBALLY</button>
     </div>
-
     <div class="box">
         <h3>[ GLOBAL ARCHIVES ]</h3>
-        <div id="archive-list">INITIALIZING...</div>
+        <div id="archive-list">REFRESHING DATABASE...</div>
     </div>
 
     <script>
         const API_URL = "https://sheetdb.io/api/v1/sn9w3fnrrq26j";
 
         async function logCase() {
-            const o = document.getElementById('off_name').value.trim();
-            const s = document.getElementById('sus_name').value.trim();
-            if(!o || !s) return alert("ERROR: ENTER NAMES");
+            const o = document.getElementById('off_name').value;
+            const s = document.getElementById('sus_name').value;
+            if(!o || !s) return alert("ENTER NAMES FIRST");
+
+            // This forces the names to match your sheet columns exactly
+            const payload = {
+                "officer": o,
+                "suspect": s,
+                "timestamp": new Date().toLocaleString()
+            };
 
             try {
                 await fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        data: [{ officer: o, suspect: s, timestamp: new Date().toLocaleString() }]
-                    })
+                    body: JSON.stringify({ data: [payload] })
                 });
-                alert("SECURED IN GLOBAL ARCHIVE");
+                alert("SECURED: " + o + " VS " + s);
                 location.reload();
-            } catch (e) { alert("SYSTEM OFFLINE"); }
+            } catch (e) { alert("CONNECTION ERROR"); }
         }
 
         async function loadArchive() {
@@ -50,17 +54,18 @@
                 const res = await fetch(API_URL);
                 const data = await res.json();
                 
-                // Filter out any "Undefined" or broken entries
-                const cleanData = data.filter(c => c.officer && c.suspect);
-
-                if(cleanData.length > 0) {
-                    document.getElementById('archive-list').innerHTML = cleanData.reverse().map(c => 
-                        `> ${c.timestamp || "NO DATE"}<br>${c.officer} BUSTED ${c.suspect}<hr style='border-color:#111'>`
-                    ).join('');
+                if (data.length > 0) {
+                    // This creates the list even if some boxes are empty
+                    document.getElementById('archive-list').innerHTML = data.reverse().map(c => {
+                        const time = c.timestamp || "NEW RECORD";
+                        const off = c.officer || "UNKNOWN";
+                        const sus = c.suspect || "TARGET";
+                        return `> ${time}<br>${off} BUSTED ${sus}<hr style='border-color:#111'>`;
+                    }).join('');
                 } else {
-                    document.getElementById('archive-list').innerHTML = "NO VALID RECORDS FOUND";
+                    document.getElementById('archive-list').innerHTML = "NO RECORDS FOUND";
                 }
-            } catch (e) { document.getElementById('archive-list').innerHTML = "CONNECTION ERROR"; }
+            } catch (e) { document.getElementById('archive-list').innerHTML = "OFFLINE"; }
         }
         window.onload = loadArchive;
     </script>
