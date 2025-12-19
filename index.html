@@ -191,22 +191,36 @@
     async function disposeRecord(susName) {
         if(!confirm("DISPOSE OF EVIDENCE & CLEAR LOG?")) return;
         
-        // Surgical fix for "TARGET" or "undefined" entries
         let target = susName;
-        if(susName === "TARGET" || susName === "undefined" || !susName) {
-            target = "undefined"; 
-        }
+        // Check if row is a 'TARGET' or glitch 'undefined'
+        const isGlitch = (susName === "TARGET" || susName === "undefined" || !susName || susName.includes("undefined"));
 
         try {
-            const res = await fetch(`${API_URL}/suspect/${encodeURIComponent(target)}`, {
+            // Step 1: Try deleting by the name shown (e.g., 'TARGET')
+            let res = await fetch(`${API_URL}/suspect/${encodeURIComponent(target)}`, {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' }
             });
-            if(res.ok) {
-                alert("RECORD PURGED");
-                renderArchive();
+            let result = await res.json();
+
+            // Step 2: Fallback - if Step 1 failed, try hunting the row as 'undefined'
+            if (result.deleted === 0 && isGlitch) {
+                res = await fetch(`${API_URL}/suspect/undefined`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                result = await res.json();
             }
-        } catch (e) { alert("PURGE FAILED"); }
+
+            if(result.deleted > 0) {
+                alert("SUCCESS: RECORD PURGED");
+            } else {
+                alert("SYSTEM: RECORD NOT FOUND IN SHEET");
+            }
+            renderArchive();
+        } catch (e) { 
+            alert("PURGE FAILED: Connection Error"); 
+        }
     }
 
     async function renderArchive() {
