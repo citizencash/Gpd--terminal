@@ -3,143 +3,276 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GPD | TOTAL ENFORCER</title>
+    <title>GPD | ARCHIVIST v21.9</title>
     <style>
-        :root { --bg: #010203; --border: #1a2a3a; --accent: #00f2ff; --danger: #ff3c3c; --success: #00ff95; }
-        body { background: var(--bg); color: #a0c4d1; font-family: 'Courier New', monospace; margin: 0; padding: 10px; }
-        .module { background: rgba(5, 10, 15, 0.98); border: 1px solid var(--border); padding: 15px; border-top: 2px solid var(--accent); margin-bottom: 12px; box-shadow: 0 0 20px rgba(0,242,255,0.1); }
-        h2 { font-size: 0.75rem; color: var(--accent); margin: 0 0 10px 0; letter-spacing: 2px; text-transform: uppercase; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
-        input { background: #000; border: 1px solid var(--border); color: #fff; padding: 12px; width: 100%; box-sizing: border-box; margin-bottom: 5px; font-size: 16px !important; }
-        .btn { width: 100%; padding: 15px; border: none; font-weight: bold; cursor: pointer; text-transform: uppercase; margin-top: 5px; transition: 0.3s; }
-        .btn-log { background: var(--success); color: #000; }
-        .log-entry { background: rgba(0,0,0,0.8); border: 1px solid var(--border); padding: 12px; margin-bottom: 8px; border-left: 4px solid var(--accent); position: relative; }
-        .ghost { border-left-color: var(--danger); background: rgba(255, 60, 60, 0.15); border-right: 1px solid var(--danger); }
-        .btn-terminate { background: rgba(255, 60, 60, 0.2); border: 1px solid var(--danger); color: var(--danger); width: 100%; padding: 10px; margin-top: 8px; font-weight: 900; cursor: pointer; }
-        #botStatus { font-size: 0.65rem; color: var(--accent); text-align: center; margin-bottom: 5px; font-weight: bold; }
-        .pulse { animation: pulse-red 1.5s infinite; }
-        @keyframes pulse-red { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+        :root { 
+            --bg: #030507; --glass: rgba(10, 15, 20, 0.98); --border: #1a2a3a; 
+            --accent: #00f2ff; --success: #00ff95; --danger: #ff3c3c; --text: #a0c4d1; --warn: #ffcc00;
+        }
+        
+        body { 
+            background: var(--bg); color: var(--text); font-family: 'Courier New', monospace; 
+            padding: 10px; margin: 0; background-image: radial-gradient(circle at 50% 50%, #0d1a21 0%, #05080a 100%);
+        }
+
+        .hud-container { max-width: 600px; margin: auto; display: flex; flex-direction: column; gap: 15px; }
+
+        .module { 
+            background: var(--glass); border: 1px solid var(--border); padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8); border-top: 2px solid var(--accent);
+        }
+
+        h2 { color: var(--accent); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 15px 0; border-bottom: 1px solid var(--border); padding-bottom: 5px;}
+
+        label { display: block; font-size: 0.65rem; color: var(--accent); margin-bottom: 5px; text-transform: uppercase; }
+
+        input, textarea { 
+            background: rgba(0,0,0,0.8); border: 1px solid var(--border); color: #fff; 
+            padding: 12px; width: 100%; box-sizing: border-box; font-size: 16px !important; border-radius: 2px; margin-bottom: 5px;
+            font-family: inherit;
+        }
+
+        .search-container { position: relative; margin-bottom: 15px; }
+        .suggestions { 
+            position: absolute; top: 100%; left: 0; right: 0; 
+            background: #0a0f14; border: 1px solid var(--accent); z-index: 100;
+            max-height: 250px; overflow-y: auto; display: none;
+        }
+        .suggestion-item { padding: 12px; cursor: pointer; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+        .suggestion-item:hover { background: var(--accent); color: #000; }
+
+        .btn { 
+            background: none; border: 1px solid var(--accent); color: var(--accent); 
+            padding: 12px; cursor: pointer; text-transform: uppercase; font-weight: bold; font-size: 0.8rem;
+        }
+        .btn-add { background: var(--accent); color: #000; width: 100%; margin-top: 10px; border: none; }
+        .btn-log { background: var(--success); color: #000; border: none; width: 100%; font-size: 1rem; margin-top: 15px; }
+        .btn-retrieve { font-size: 0.6rem; border: 1px solid var(--warn); color: var(--warn); padding: 4px 8px; }
+        .btn-danger { color: #ff3c3c; border: 1px solid #ff3c3c; width: 100%; margin-top: 20px; opacity: 0.6; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.8rem; }
+        th { text-align: left; color: var(--accent); padding: 10px; border-bottom: 1px solid var(--border); }
+        td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+
+        .log-entry { background: rgba(0,0,0,0.4); border: 1px solid var(--border); padding: 12px; margin-bottom: 10px; border-left: 4px solid var(--accent); font-size: 0.75rem; word-wrap: break-word; }
+        
+        #uplink-status { font-size: 0.6rem; text-align: right; margin-top: -10px; margin-bottom: 10px; color: var(--accent); font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div class="module">
-    <h2>[ COMMAND TERMINAL ]</h2>
-    <input type="text" id="officer" placeholder="OFFICER ID" onchange="localStorage.setItem('gpd_ofc', this.value)">
-    <input type="text" id="suspect" placeholder="SUSPECT">
-    <input type="text" id="asset" placeholder="ASSET DATA">
-    <button class="btn btn-log" onclick="archive()">SECURE RECORD</button>
-</div>
+<div class="hud-container">
+    <div class="module">
+        <h2>[ COMMAND TERMINAL ]</h2>
+        <div id="uplink-status">UPLINK STABLE</div>
+        <div style="display:flex; gap:10px;">
+            <div style="flex:1">
+                <label>OFFICER</label>
+                <input type="text" id="officer" placeholder="Badge ID" onchange="saveOfc()">
+            </div>
+            <div style="flex:1">
+                <label>SUSPECT</label>
+                <input type="text" id="suspect" placeholder="Subject Name">
+            </div>
+        </div>
 
-<div class="module">
-    <h2>[ BOT LOGIC CORE ]</h2>
-    <div id="botStatus">READY</div>
-    <div id="retryCount" style="font-size: 0.5rem; text-align: center; opacity: 0.6;"></div>
-    <button class="btn" style="background:var(--danger); color:#000; font-size:0.7rem;" onclick="deepScrub()">EXECUTE DEEP SCRUB (NUKE BLANKS)</button>
-</div>
+        <label>SEARCH DATABASE</label>
+        <div class="search-container">
+            <input type="text" id="assetSearch" placeholder="Type to search..." onkeyup="filterAssets()">
+            <div id="suggestionBox" class="suggestions"></div>
+        </div>
 
-<div class="module">
-    <h2>[ ENFORCER FEED ]</h2>
-    <div id="logBody">UPLINKING...</div>
+        <label>QUANTITY</label>
+        <div style="display:flex; gap:5px; margin-bottom:10px;">
+            <button class="btn" onclick="setQ(1)">1x</button>
+            <button class="btn" onclick="setQ(250)">250x</button>
+            <input type="number" id="qty" value="1" style="background:rgba(0,0,0,0.8); border:1px solid var(--border); color:#fff; width:100%; text-align:center;">
+        </div>
+        <button class="btn btn-add" onclick="addConfirmed()">ADD TO MANIFEST</button>
+    </div>
+
+    <div class="module">
+        <h2>[ SEIZURE MANIFEST ]</h2>
+        <table id="manifestTable">
+            <thead><tr><th>ITEM</th><th>QTY</th><th>VALUE</th><th>X</th></tr></thead>
+            <tbody id="lockerBody"></tbody>
+        </table>
+        
+        <div style="margin-top:20px; border-top:1px solid var(--border); padding-top:15px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span id="totalDisplay" style="font-size:1.5rem; font-weight:bold; color:var(--success);">0 U</span>
+                <button class="btn btn-log" style="width:200px;" id="logBtn" onclick="archive()">LOG CASE</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="module">
+        <h2>[ PRECINCT ARCHIVES ]</h2>
+        <div id="logBody"></div>
+        <button class="btn btn-danger" onclick="wipeAll()">WIPE ALL RECORDS</button>
+    </div>
 </div>
 
 <script>
-    const API_URL = "https://sheetdb.io/api/v1/sn9w3fnrrq26j";
-    let activeHunt = false;
+    // PUT YOUR GOOGLE WEB APP URL HERE
+    const UPLINK_URL = 'https://script.google.com/macros/s/AKfycbzLreR6lXzWjP0-496YgD-f6Y9yL7v-8N1ZqU5xX3g7y1q/exec';
+
+    const database = [
+        { name: "AI Valve", val: 12000000 }, { name: "Activated Indium", val: 949 },
+        { name: "Gold", val: 353 }, { name: "Platinum", val: 505 }, { name: "Silver", val: 101 },
+        { name: "Storm Crystal", val: 129150 }, { name: "Hadal Core", val: 61000 },
+        { name: "Larval Core", val: 61000 }, { name: "Walker Brain", val: 35000 },
+        { name: "Gravitino Ball", val: 12500 }, { name: "NipNip Buds", val: 17776 },
+        { name: "GekNip", val: 20000 }, { name: "Stasis Device", val: 15600000 },
+        { name: "Circuit Board", val: 916250 }, { name: "Poly Fibre", val: 130000 },
+        { name: "Delicious Vegetable Stew", val: 18000 }, { name: "Meaty Stew", val: 15000 }
+    ];
+
+    let locker = [];
+    let archiveData = JSON.parse(localStorage.getItem('gpd_v21_9_data')) || [];
+    let selectedItem = null;
 
     window.onload = () => {
-        document.getElementById('officer').value = localStorage.getItem('gpd_ofc') || '';
-        huntLoop();
+        document.getElementById('officer').value = localStorage.getItem('gpd_ofc_name') || '';
+        renderArchive();
     };
 
-    // --- THE RELENTLESS HUNT LOOP ---
-    async function huntLoop(attempt = 1) {
-        if(activeHunt) return;
-        activeHunt = true;
-        const status = document.getElementById('botStatus');
-        const retry = document.getElementById('retryCount');
-        
-        status.innerText = "BOT SCANNING...";
-        status.className = "";
+    function saveOfc() { localStorage.setItem('gpd_ofc_name', document.getElementById('officer').value); }
+    function setQ(n) { document.getElementById('qty').value = n; }
 
-        try {
-            const res = await fetch(API_URL);
-            if (!res.ok) throw new Error("Connection Blocked");
-            const data = await res.json();
-            
-            render(data);
-            status.innerText = "UPLINK STABLE";
-            retry.innerText = "";
-            activeHunt = false;
-        } catch (e) {
-            activeHunt = false;
-            status.innerText = "UPLINK TIMEOUT - RETRYING";
-            status.className = "pulse";
-            retry.innerText = `RE-ROUTING ATTEMPT #${attempt}`;
-            setTimeout(() => huntLoop(attempt + 1), 3000); // 3-second cycle
-        }
+    function filterAssets() {
+        const input = document.getElementById('assetSearch').value.toLowerCase();
+        const box = document.getElementById('suggestionBox');
+        box.innerHTML = '';
+        if (input.length < 1) { box.style.display = 'none'; return; }
+        const filtered = database.filter(item => item.name.toLowerCase().includes(input));
+        if (filtered.length > 0) {
+            box.style.display = 'block';
+            filtered.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'suggestion-item';
+                div.innerText = item.name;
+                div.onclick = () => {
+                    document.getElementById('assetSearch').value = item.name;
+                    selectedItem = item;
+                    box.style.display = 'none';
+                };
+                box.appendChild(div);
+            });
+        } else { box.style.display = 'none'; }
     }
 
-    // --- THE MANHATTAN DEEP SCRUB ---
-    async function deepScrub() {
-        const status = document.getElementById('botStatus');
-        status.innerText = "DEEP SCRUB INITIALIZED...";
-        
-        // Attack the 4 horsemen of ghost data
-        const killList = [
-            `${API_URL}/suspect/`, // Pure Blanks
-            `${API_URL}/suspect/undefined`, // Logic Errors
-            `${API_URL}/suspect/TARGET`, // Identity Errors
-            `${API_URL}/suspect/BLANK` // Placeholder Errors
-        ];
-
-        await Promise.all(killList.map(url => fetch(url, { method: 'DELETE' }).catch(()=>{})));
-        huntLoop();
+    function addConfirmed() {
+        const nameInput = document.getElementById('assetSearch').value;
+        const item = selectedItem || database.find(x => x.name.toLowerCase() === nameInput.toLowerCase());
+        if(!item) return alert("Asset not found.");
+        const q = parseInt(document.getElementById('qty').value) || 1;
+        const existing = locker.find(x => x.name === item.name);
+        if (existing) existing.qty += q;
+        else locker.push({ name: item.name, val: item.val, qty: q });
+        document.getElementById('assetSearch').value = '';
+        selectedItem = null;
+        updateLocker();
     }
 
-    // --- TARGETED TERMINATION ---
-    async function terminate(time, sus) {
-        const btn = event.target;
-        btn.innerText = "EXTERMINATING...";
-        
-        // Parallel Strike
-        await Promise.all([
-            fetch(`${API_URL}/timestamp/${encodeURIComponent(time)}`, { method: 'DELETE' }),
-            fetch(`${API_URL}/suspect/${encodeURIComponent(sus)}`, { method: 'DELETE' })
-        ]).catch(()=>{});
-
-        setTimeout(huntLoop, 1000);
+    function updateLocker() {
+        const body = document.getElementById('lockerBody');
+        let total = 0; body.innerHTML = '';
+        locker.forEach((item, idx) => {
+            const sum = item.val * item.qty; total += sum;
+            body.innerHTML += `<tr>
+                <td>${item.name}</td>
+                <td>x${item.qty}</td>
+                <td style="color:var(--success)">${sum.toLocaleString()}</td>
+                <td style="color:var(--danger); cursor:pointer;" onclick="locker.splice(${idx},1);updateLocker();">X</td>
+            </tr>`;
+        });
+        document.getElementById('totalDisplay').innerText = total.toLocaleString() + " U";
     }
 
     async function archive() {
-        const ofc = document.getElementById('officer').value || "UNK";
-        const sus = document.getElementById('suspect').value || "TARGET";
-        const asset = document.getElementById('asset').value || "NO_DATA";
-
-        await fetch(API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ data: [{ officer: ofc, suspect: sus, timestamp: asset }] })
-        });
+        if (!locker.length) return alert("Manifest is empty.");
+        const logBtn = document.getElementById('logBtn');
+        const status = document.getElementById('uplink-status');
         
+        const caseRecord = {
+            ofc: document.getElementById('officer').value || "OFC. UNKNOWN",
+            sus: document.getElementById('suspect').value || "SUS. UNKNOWN",
+            items: [...locker],
+            total: document.getElementById('totalDisplay').innerText,
+            date: new Date().toLocaleString()
+        };
+
+        // 1. Local Save (Functionality Kept)
+        archiveData.unshift(caseRecord);
+        localStorage.setItem('gpd_v21_9_data', JSON.stringify(archiveData));
+        
+        // 2. Manhattan Uplink (The New Stable Tech)
+        logBtn.innerText = "UPLINKING...";
+        logBtn.disabled = true;
+        status.innerText = "CONNECTING TO MANHATTAN...";
+
+        try {
+            const formData = new URLSearchParams();
+            formData.append('officer', caseRecord.ofc);
+            formData.append('suspect', caseRecord.sus);
+            formData.append('timestamp', caseRecord.date);
+            formData.append('manifest', caseRecord.items.map(i => `${i.qty}x ${i.name}`).join(", "));
+
+            await fetch(UPLINK_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: formData
+            });
+
+            status.innerText = "UPLINK SUCCESSFUL";
+            status.style.color = "var(--success)";
+        } catch (e) {
+            status.innerText = "LOCAL SAVE ONLY - UPLINK OFFLINE";
+            status.style.color = "var(--danger)";
+        }
+
+        // Cleanup
+        locker = []; 
+        updateLocker(); 
+        renderArchive();
         document.getElementById('suspect').value = '';
-        document.getElementById('asset').value = '';
-        huntLoop();
+        logBtn.innerText = "LOG CASE";
+        logBtn.disabled = false;
+        setTimeout(() => { 
+            status.innerText = "UPLINK STABLE"; 
+            status.style.color = "var(--accent)";
+        }, 3000);
     }
 
-    function render(data) {
+    function retrieve(index) {
+        const caseData = archiveData[index];
+        document.getElementById('suspect').value = caseData.sus;
+        locker = [...caseData.items];
+        archiveData.splice(index, 1);
+        localStorage.setItem('gpd_v21_9_data', JSON.stringify(archiveData));
+        updateLocker();
+        renderArchive();
+    }
+
+    function renderArchive() {
         const body = document.getElementById('logBody');
         body.innerHTML = '';
-        data.reverse().forEach(h => {
-            const isGhost = (!h.suspect || h.suspect === "TARGET" || h.suspect === "undefined");
-            body.innerHTML += `
-                <div class="log-entry ${isGhost ? 'ghost' : ''}">
-                    <div style="font-size:0.5rem; color:var(--accent)">OFC: ${h.officer}</div>
-                    <div style="font-weight:bold; font-size:0.9rem;">${isGhost ? 'CORRUPT RECORD' : 'SUSPECT: ' + h.suspect}</div>
-                    <div style="font-size:0.7rem; opacity:0.6;">${h.timestamp}</div>
-                    <button class="btn-terminate" onclick="terminate('${h.timestamp}', '${h.suspect}')">TERMINATE</button>
-                </div>`;
+        archiveData.forEach((h, idx) => {
+            const list = h.items.map(i => `${i.qty}x ${i.name}`).join(", ");
+            body.innerHTML += `<div class="log-entry">
+                <div style="color:var(--accent); font-size:0.6rem;">${h.ofc} | ${h.date}</div>
+                <div style="font-weight:bold;">SUSPECT: ${h.sus}</div>
+                <div style="opacity:0.8; margin-bottom:10px;">${list}</div>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="color:var(--success); font-weight:bold;">${h.total}</span>
+                    <button class="btn btn-retrieve" onclick="retrieve(${idx})">RETRIEVE</button>
+                </div>
+            </div>`;
         });
     }
+
+    function wipeAll() { if(confirm("DELETE ALL PRECINCT DATA?")) { archiveData = []; localStorage.removeItem('gpd_v21_9_data'); renderArchive(); } }
 </script>
 </body>
 </html>
