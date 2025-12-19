@@ -7,7 +7,7 @@
     <style>
         :root { 
             --bg: #030507; --glass: rgba(10, 15, 20, 0.98); --border: #1a2a3a; 
-            --accent: #00f2ff; --success: #00ff95; --danger: #ff3c3c; --text: #a0c4d1; --warn: #ffcc00;
+            --accent: #00f2ff; --success: #00ff95; --danger: #ff3c3c; --text: #a0c4d1; 
         }
         body { 
             background: var(--bg); color: var(--text); font-family: 'Courier New', monospace; 
@@ -167,20 +167,18 @@
 
     async function archive() {
         const ofc = document.getElementById('officer').value || "OFC. UNKNOWN";
-        const sus = document.getElementById('suspect').value || "TARGET";
+        const sus = document.getElementById('suspect').value || ""; 
         if (!locker.length) return alert("Manifest is empty.");
         const logString = locker.map(i => `${i.qty}x ${i.name}`).join(", ");
         const totalVal = document.getElementById('totalDisplay').innerText;
-        
-        // This is the Fingerprint that makes the record easy to find later
-        const finalDetails = `SEIZED: ${logString} (Total: ${totalVal})`;
+        const finalTimestamp = `SEIZED: ${logString} (Total: ${totalVal})`;
 
         try {
             const response = await fetch(API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    data: [{ officer: ofc, suspect: sus, timestamp: finalDetails }]
+                    data: [{ officer: ofc, suspect: sus, timestamp: finalTimestamp }]
                 })
             });
             if(response.ok) {
@@ -191,26 +189,43 @@
         } catch (e) { alert("BROADCAST FAILED"); }
     }
 
-    async function disposeRecord(detailsFingerprint) {
+    // THE IMPROVED TRIPLE-CHECK DISPOSAL
+    async function disposeRecord(ofc, sus, time) {
         if(!confirm("DISPOSE OF EVIDENCE & CLEAR LOG?")) return;
         
         try {
-            // We search the 'timestamp' column for the exact fingerprint string
-            const res = await fetch(`${API_URL}/timestamp/${encodeURIComponent(detailsFingerprint)}`, {
+            // STEP 1: Try deleting by the long Timestamp (The unique item list)
+            let res = await fetch(`${API_URL}/timestamp/${encodeURIComponent(time)}`, {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' }
             });
-            const result = await res.json();
+            let result = await res.json();
+
+            // STEP 2: If that fails, try deleting by Suspect name
+            if (result.deleted === 0) {
+                let searchName = (sus === "TARGET" || sus === "undefined") ? "" : sus;
+                res = await fetch(`${API_URL}/suspect/${encodeURIComponent(searchName)}`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                result = await res.json();
+            }
+
+            // STEP 3: If still nothing, try deleting by Officer name as a last resort
+            if (result.deleted === 0) {
+                res = await fetch(`${API_URL}/officer/${encodeURIComponent(ofc)}`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                result = await res.json();
+            }
 
             if(result.deleted > 0) {
                 alert("SUCCESS: RECORD PURGED");
-                renderArchive();
             } else {
-                // If it fails, we try one last 'blind' delete for 'undefined' entries
-                const fallback = await fetch(`${API_URL}/suspect/undefined`, { method: 'DELETE' });
-                alert("RECORD REMOVED FROM VIEW");
-                renderArchive();
+                alert("SYSTEM: RECORD ALREADY CLEAR OR NOT FOUND");
             }
+            renderArchive();
         } catch (e) { 
             alert("PURGE FAILED: Connection Error"); 
         }
@@ -233,7 +248,7 @@
                     <div style="color:var(--accent); font-size:0.6rem;">${o} | LOGGED</div>
                     <div style="font-weight:bold;">SUSPECT: ${s}</div>
                     <div style="opacity:0.8; font-size:0.65rem; margin-top:4px;">${t}</div>
-                    <button class="btn btn-dispose" onclick="disposeRecord('${t}')">DISPOSE EVIDENCE</button>
+                    <button class="btn btn-dispose" onclick="disposeRecord('${o}', '${s}', '${t}')">DISPOSE EVIDENCE</button>
                 </div>`;
             });
         } catch (e) { body.innerHTML = "OFFLINE: CHECK CONNECTION"; }
