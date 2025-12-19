@@ -3,38 +3,6 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GPD | GLOBAL TERMINAL</title>
-    <script>
-        // 1. PASTE YOUR LINK FROM SHEETDB.IO BETWEEN THE QUOTES BELOW
-        const API_URL = "https://sheetdb.io/api/v1/sn9w3fnrrq26j;
-
-        async function logCase() {
-            const o = document.getElementById('off_name').value;
-            const s = document.getElementById('sus_name').value;
-            if(!o || !s) return alert("ENTER NAMES FIRST");
-
-            try {
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        data: [{ officer: o, suspect: s, timestamp: new Date().toLocaleString() }]
-                    })
-                });
-                if(response.ok) { alert("SECURED GLOBALLY"); location.reload(); }
-            } catch (e) { alert("CONNECTION ERROR"); }
-        }
-
-        async function loadArchive() {
-            try {
-                const res = await fetch(API_URL);
-                const data = await res.json();
-                document.getElementById('archive-list').innerHTML = data.reverse().map(c => 
-                    `> ${c.timestamp}<br>${c.officer} BUSTED ${c.suspect}<hr style='border-color:#111'>`
-                ).join('');
-            } catch (e) { document.getElementById('archive-list').innerHTML = "NO RECORDS FOUND"; }
-        }
-        window.onload = loadArchive;
-    </script>
     <style>
         body { background:#030507; color:#00f2ff; font-family:monospace; padding:15px; text-transform:uppercase; }
         .box { border: 2px solid #004c54; padding: 15px; margin-bottom: 20px; background:#050a0f; }
@@ -50,9 +18,51 @@
         <input type="text" id="sus_name" placeholder="SUSPECT NAME">
         <button onclick="logCase()">LOG CASE GLOBALLY</button>
     </div>
+
     <div class="box">
         <h3>[ GLOBAL ARCHIVES ]</h3>
         <div id="archive-list">LOADING RECORDS...</div>
     </div>
+
+    <script>
+        // Your Verified Link from Photo 4211.jpg
+        const API_URL = "https://sheetdb.io/api/v1/sn9w3fnrrq26j";
+
+        async function logCase() {
+            const o = document.getElementById('off_name').value;
+            const s = document.getElementById('sus_name').value;
+            if(!o || !s) return alert("ENTER NAMES FIRST");
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        data: [{ officer: o, suspect: s, timestamp: new Date().toLocaleString() }]
+                    })
+                });
+
+                if(response.ok) {
+                    alert("SECURED IN GOOGLE SHEETS");
+                    location.reload();
+                }
+            } catch (e) { alert("CONNECTION ERROR"); }
+        }
+
+        async function loadArchive() {
+            try {
+                const res = await fetch(API_URL);
+                const data = await res.json();
+                if(data.length > 0) {
+                    document.getElementById('archive-list').innerHTML = data.reverse().map(c => 
+                        `> ${c.timestamp}<br>${c.officer} BUSTED ${c.suspect}<hr style='border-color:#111'>`
+                    ).join('');
+                } else {
+                    document.getElementById('archive-list').innerHTML = "NO RECORDS FOUND";
+                }
+            } catch (e) { document.getElementById('archive-list').innerHTML = "OFFLINE"; }
+        }
+        window.onload = loadArchive;
+    </script>
 </body>
 </html>
