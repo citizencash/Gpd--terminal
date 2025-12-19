@@ -188,15 +188,22 @@
         } catch (e) { alert("BROADCAST FAILED"); }
     }
 
-    async function disposeRecord(suspectName) {
+    async function disposeRecord(susName) {
         if(!confirm("DISPOSE OF EVIDENCE & CLEAR LOG?")) return;
+        
+        // Surgical fix for "TARGET" or "undefined" entries
+        let target = susName;
+        if(susName === "TARGET" || susName === "undefined" || !susName) {
+            target = "undefined"; 
+        }
+
         try {
-            const res = await fetch(`${API_URL}/suspect/${encodeURIComponent(suspectName)}`, {
+            const res = await fetch(`${API_URL}/suspect/${encodeURIComponent(target)}`, {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' }
             });
             if(res.ok) {
-                alert("RECORD PURGED FROM ARCHIVE");
+                alert("RECORD PURGED");
                 renderArchive();
             }
         } catch (e) { alert("PURGE FAILED"); }
