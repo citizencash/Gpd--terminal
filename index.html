@@ -5,32 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>GPD | MANHATTAN CONTROL</title>
     <style>
-        :root { 
-            --bg: #030507; --glass: rgba(10, 15, 20, 0.98); --border: #1a2a3a; 
-            --accent: #00f2ff; --success: #00ff95; --danger: #ff3c3c; --text: #a0c4d1; 
-        }
-        body { 
-            background: var(--bg); color: var(--text); font-family: 'Courier New', monospace; 
-            padding: 10px; margin: 0; background-image: radial-gradient(circle at 50% 50%, #0d1a21 0%, #05080a 100%);
-        }
+        :root { --bg: #030507; --glass: rgba(10, 15, 20, 0.98); --border: #1a2a3a; --accent: #00f2ff; --success: #00ff95; --danger: #ff3c3c; --text: #a0c4d1; }
+        body { background: var(--bg); color: var(--text); font-family: 'Courier New', monospace; padding: 10px; margin: 0; }
         .hud-container { max-width: 600px; margin: auto; display: flex; flex-direction: column; gap: 15px; }
-        .module { 
-            background: var(--glass); border: 1px solid var(--border); padding: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8); border-top: 2px solid var(--accent);
-        }
-        h2 { color: var(--accent); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 15px 0; border-bottom: 1px solid var(--border); padding-bottom: 5px;}
-        input { 
-            background: rgba(0,0,0,0.8); border: 1px solid var(--border); color: #fff; 
-            padding: 12px; width: 100%; box-sizing: border-box; font-size: 16px !important; border-radius: 2px; margin-bottom: 5px;
-        }
-        .btn { 
-            background: none; border: 1px solid var(--accent); color: var(--accent); 
-            padding: 12px; cursor: pointer; text-transform: uppercase; font-weight: bold; font-size: 0.8rem;
-        }
-        .btn-log { background: var(--success); color: #000; border: none; width: 100%; font-size: 1.1rem; margin-top: 5px; }
-        .btn-dispose { border: 2px solid var(--danger); color: var(--danger); font-size: 0.8rem; padding: 12px; margin-top: 10px; width: 100%; cursor: pointer; background: rgba(255, 60, 60, 0.1); font-weight: bold; }
-        .log-entry { background: rgba(0,0,0,0.6); border: 1px solid var(--border); padding: 15px; margin-bottom: 12px; border-left: 5px solid var(--accent); position: relative;}
-        .ghost-entry { border-left: 5px solid var(--danger) !important; background: rgba(255, 60, 60, 0.2); }
+        .module { background: var(--glass); border: 1px solid var(--border); padding: 20px; border-top: 2px solid var(--accent); position: relative; }
+        h2 { color: var(--accent); font-size: 0.8rem; text-transform: uppercase; margin: 0 0 10px 0; border-bottom: 1px solid var(--border); }
+        input { background: rgba(0,0,0,0.8); border: 1px solid var(--border); color: #fff; padding: 12px; width: 100%; box-sizing: border-box; font-size: 16px !important; margin-bottom: 8px; }
+        .btn { background: none; border: 1px solid var(--accent); color: var(--accent); padding: 12px; cursor: pointer; text-transform: uppercase; font-weight: bold; width: 100%; }
+        .btn-log { background: var(--success); color: #000; border: none; font-size: 1.1rem; margin-top: 5px; }
+        .btn-purge { border: 2px solid var(--danger); color: var(--danger); font-size: 0.8rem; padding: 12px; margin-top: 10px; width: 100%; cursor: pointer; background: rgba(255, 60, 60, 0.1); font-weight: 900; }
+        .log-entry { background: rgba(0,0,0,0.6); border: 1px solid var(--border); padding: 15px; margin-bottom: 12px; border-left: 5px solid var(--success); position: relative; }
+        .ghost-alert { border-left: 5px solid var(--danger) !important; background: rgba(255, 60, 60, 0.2); }
+        .status-badge { font-size: 0.6rem; padding: 2px 5px; border-radius: 2px; text-transform: uppercase; position: absolute; top: 10px; right: 10px; }
     </style>
 </head>
 <body>
@@ -39,79 +25,64 @@
     <div class="module">
         <h2>[ COMMAND TERMINAL ]</h2>
         <div style="display:flex; gap:10px;">
-            <input type="text" id="officer" placeholder="OFFICER ID" onchange="saveOfc()" style="flex:1">
-            <input type="text" id="suspect" placeholder="SUSPECT" style="flex:1">
+            <input type="text" id="officer" placeholder="OFFICER ID" style="flex:1" onchange="localStorage.setItem('gpd_ofc', this.value)">
+            <input type="text" id="suspect" placeholder="SUSPECT">
         </div>
-        <input type="text" id="assetSearch" placeholder="SEARCH ASSET...">
-        <input type="number" id="qty" value="1" style="width:100%; text-align:center; margin-top:10px;">
-        <button class="btn" style="background:var(--accent); color:#000; width:100%; margin: 10px 0;" onclick="addConfirmed()">ADD ITEM</button>
-        <button class="btn btn-log" onclick="archive()">LOG CASE TO ARCHIVE</button>
-    </div>
-
-    <div class="module">
-        <h2>[ SEIZURE MANIFEST ]</h2>
-        <div id="lockerBody"></div>
-        <h1 id="totalDisplay" style="color:var(--success); text-align:right; margin:0;">0 U</h1>
+        <input type="text" id="assetSearch" placeholder="ADD EVIDENCE ITEM...">
+        <button class="btn btn-log" onclick="archive()">SECURE FILE TO ARCHIVE</button>
     </div>
 
     <div class="module">
         <h2>[ GLOBAL ARCHIVE ENFORCER ]</h2>
-        <div id="logBody">ESTABLISHING UPLINK...</div>
-        <button class="btn" onclick="renderArchive()" style="width:100%; margin-top:10px; font-size:0.6rem; opacity:0.5;">MANUAL REFRESH</button>
+        <div id="logBody">SYNCING WITH MANHATTAN...</div>
     </div>
 </div>
 
 <script>
     const API_URL = "https://sheetdb.io/api/v1/sn9w3fnrrq26j";
-    let locker = [];
 
     window.onload = () => {
-        document.getElementById('officer').value = localStorage.getItem('gpd_ofc_name') || '';
+        document.getElementById('officer').value = localStorage.getItem('gpd_ofc') || '';
         renderArchive();
     };
 
-    function saveOfc() { localStorage.setItem('gpd_ofc_name', document.getElementById('officer').value); }
-
-    function addConfirmed() {
-        const name = document.getElementById('assetSearch').value;
-        const q = parseInt(document.getElementById('qty').value) || 1;
-        locker.push({ name: name, qty: q });
-        updateLocker();
-        document.getElementById('assetSearch').value = '';
-    }
-
-    function updateLocker() {
-        const body = document.getElementById('lockerBody');
-        body.innerHTML = '';
-        locker.forEach(i => { body.innerHTML += `<div style="padding:5px; border-bottom:1px solid var(--border)">${i.qty}x ${i.name}</div>`; });
-    }
-
     async function archive() {
         const ofc = document.getElementById('officer').value || "UNKNOWN";
-        const sus = document.getElementById('suspect').value || "";
-        const details = locker.map(i => `${i.qty}x ${i.name}`).join(", ");
-        if(!details) return;
+        const sus = document.getElementById('suspect').value.trim();
+        const asset = document.getElementById('assetSearch').value || "NO ASSET LISTED";
         
+        // Protocol: If suspect is missing, mark as GHOST immediately for easy purging
+        const finalSus = sus === "" ? "TARGET_GHOST" : sus;
+
         await fetch(API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ data: [{ officer: ofc, suspect: sus, timestamp: details }] })
+            body: JSON.stringify({ data: [{ officer: ofc, suspect: finalSus, timestamp: asset }] })
         });
-        locker = []; updateLocker(); renderArchive();
+        
         document.getElementById('suspect').value = '';
+        document.getElementById('assetSearch').value = '';
+        renderArchive();
     }
 
-    // --- ENFORCER PROTOCOL: NO DELAYS, NO QUESTIONS ---
-    async function enforcePurge(timestampValue) {
-        // Manhattan Protocol: Destroy by timestamp (unique ID) and clear all blank/null ghosts
-        const protocols = [
-            fetch(`${API_URL}/timestamp/${encodeURIComponent(timestampValue)}`, { method: 'DELETE' }),
-            fetch(`${API_URL}/suspect/`, { method: 'DELETE' }), // Scrub absolute blanks
-            fetch(`${API_URL}/suspect/undefined`, { method: 'DELETE' }),
-            fetch(`${API_URL}/suspect/TARGET`, { method: 'DELETE' })
+    async function enforcePurge(timestampVal, suspectVal) {
+        // Manhattan Brute-Force: Delete by any match found
+        const encodedTime = encodeURIComponent(timestampVal);
+        const encodedSus = encodeURIComponent(suspectVal);
+
+        const deleteUrls = [
+            `${API_URL}/timestamp/${encodedTime}`,
+            `${API_URL}/suspect/${encodedSus}`,
+            `${API_URL}/suspect/`, // Kill blanks
+            `${API_URL}/suspect/undefined`,
+            `${API_URL}/suspect/TARGET`,
+            `${API_URL}/suspect/TARGET_GHOST`
         ];
 
-        await Promise.all(protocols);
+        // Fire all deletion rounds simultaneously
+        await Promise.all(deleteUrls.map(url => fetch(url, { method: 'DELETE' }).catch(e => {})));
+        
+        // Immediate UI scrub
         renderArchive();
     }
 
@@ -121,21 +92,30 @@
             const res = await fetch(API_URL);
             const data = await res.json();
             body.innerHTML = '';
+            
             data.reverse().forEach(h => {
                 const s = h.suspect || "";
-                const isGhost = (!s || s === "undefined" || s === "TARGET");
-                const displayName = isGhost ? "TARGET (UNIDENTIFIED)" : s;
-                const entryClass = isGhost ? "ghost-entry" : "";
+                // Rule: If it's missing data, it's a Ghost. If it's a Ghost, we use the Danger style.
+                const isGhost = (!s || s === "undefined" || s === "TARGET" || s === "TARGET_GHOST" || s === "BLANK_ENTRY");
+                const style = isGhost ? "ghost-alert" : "";
+                const badge = isGhost ? "STATUS: CORRUPT" : "STATUS: SECURE";
+                const badgeColor = isGhost ? "var(--danger)" : "var(--success)";
 
                 body.innerHTML += `
-                    <div class="log-entry ${entryClass}">
-                        <div style="font-size:0.6rem; color:var(--accent)">OFFICER: ${h.officer}</div>
-                        <div style="font-weight:bold; margin: 4px 0;">SUSPECT: ${displayName}</div>
-                        <div style="font-size:0.7rem; opacity:0.7;">${h.timestamp}</div>
-                        <button class="btn-dispose" onclick="enforcePurge('${h.timestamp}')">PURGE RECORD</button>
+                    <div class="log-entry ${style}">
+                        <span class="status-badge" style="background:${badgeColor}; color:#000;">${badge}</span>
+                        <div style="font-size:0.6rem; color:var(--accent)">OFC: ${h.officer}</div>
+                        <div style="font-weight:900; margin:5px 0; font-size:1.1rem;">${isGhost ? 'GHOST RECORD' : 'SUSPECT: ' + s}</div>
+                        <div style="font-size:0.7rem; opacity:0.6; border-top:1px solid var(--border); padding-top:5px;">${h.timestamp}</div>
+                        <button class="btn-purge" onclick="this.innerText='PURGING...'; enforcePurge('${h.timestamp}', '${s}')">
+                            ${isGhost ? 'TERMINATE GHOST' : 'DISPOSE EVIDENCE'}
+                        </button>
                     </div>`;
             });
-        } catch (e) { body.innerHTML = "<div style='color:var(--danger)'>CONNECTION LOST - RETRYING...</div>"; }
+        } catch (e) {
+            body.innerHTML = "<div style='color:var(--danger); font-weight:bold;'>UPLINK FAILURE - RETRYING...</div>";
+            setTimeout(renderArchive, 2000);
+        }
     }
 </script>
 </body>
