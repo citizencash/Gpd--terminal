@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GPD | ARCHIVIST v21.9 MASTER</title>
+    <title>GPD | ARCHIVIST v21.9 GLOBAL</title>
     <style>
         :root { 
             --bg: #030507; --glass: rgba(10, 15, 20, 0.98); --border: #1a2a3a; 
@@ -24,13 +24,26 @@
             background: rgba(0,0,0,0.8); border: 1px solid var(--border); color: #fff; 
             padding: 12px; width: 100%; box-sizing: border-box; font-size: 16px !important; border-radius: 2px; margin-bottom: 5px;
         }
+        .search-container { position: relative; margin-bottom: 15px; }
+        .suggestions { 
+            position: absolute; top: 100%; left: 0; right: 0; 
+            background: #0a0f14; border: 1px solid var(--accent); z-index: 100;
+            max-height: 250px; overflow-y: auto; display: none;
+        }
+        .suggestion-item { padding: 12px; cursor: pointer; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+        .suggestion-item:hover { background: var(--accent); color: #000; }
         .btn { 
             background: none; border: 1px solid var(--accent); color: var(--accent); 
             padding: 12px; cursor: pointer; text-transform: uppercase; font-weight: bold; font-size: 0.8rem;
         }
-        .btn-log { background: var(--success); color: #000; border: none; width: 150px; font-size: 1rem; }
-        .btn-dispose { border: 1px solid var(--danger); color: var(--danger); padding: 5px; font-size: 0.6rem; margin-top: 10px; width: 100%; }
-        .log-entry { background: rgba(0,0,0,0.4); border: 1px solid var(--border); padding: 12px; margin-bottom: 10px; border-left: 4px solid var(--accent); font-size: 0.75rem; }
+        .btn-add { background: var(--accent); color: #000; width: 100%; margin-top: 10px; border: none; }
+        .btn-log { background: var(--success); color: #000; border: none; width: 200px; font-size: 1rem; }
+        .btn-danger { color: #ff3c3c; border: 1px solid #ff3c3c; width: 100%; margin-top: 20px; opacity: 0.8; }
+        .btn-dispose { border: 1px solid var(--danger); color: var(--danger); font-size: 0.6rem; padding: 4px 8px; margin-top: 8px; width: 100%; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.8rem; }
+        th { text-align: left; color: var(--accent); padding: 10px; border-bottom: 1px solid var(--border); }
+        td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .log-entry { background: rgba(0,0,0,0.4); border: 1px solid var(--border); padding: 12px; margin-bottom: 10px; border-left: 4px solid var(--accent); font-size: 0.75rem; word-wrap: break-word; }
     </style>
 </head>
 <body>
@@ -41,92 +54,176 @@
         <div style="display:flex; gap:10px;">
             <div style="flex:1">
                 <label>OFFICER</label>
-                <input type="text" id="officer" placeholder="Badge ID" onchange="localStorage.setItem('gpd_ofc', this.value)">
+                <input type="text" id="officer" placeholder="Badge ID" onchange="saveOfc()">
             </div>
             <div style="flex:1">
                 <label>SUSPECT</label>
                 <input type="text" id="suspect" placeholder="Subject Name">
             </div>
         </div>
-        <label>EVIDENCE INPUT</label>
-        <input type="text" id="asset" placeholder="Item Name...">
-        <button class="btn" style="width:100%; margin-top:5px; background:var(--accent); color:#000;" onclick="add()">ADD TO MANIFEST</button>
+        <label>SEARCH DATABASE</label>
+        <div class="search-container">
+            <input type="text" id="assetSearch" placeholder="Type to search..." onkeyup="filterAssets()">
+            <div id="suggestionBox" class="suggestions"></div>
+        </div>
+        <label>QUANTITY</label>
+        <div style="display:flex; gap:5px; margin-bottom:10px;">
+            <button class="btn" onclick="setQ(1)">1x</button>
+            <button class="btn" onclick="setQ(250)">250x</button>
+            <input type="number" id="qty" value="1" style="background:rgba(0,0,0,0.8); border:1px solid var(--border); color:#fff; width:100%; text-align:center;">
+        </div>
+        <button class="btn btn-add" onclick="addConfirmed()">ADD TO MANIFEST</button>
     </div>
 
     <div class="module">
         <h2>[ SEIZURE MANIFEST ]</h2>
-        <div id="locker"></div>
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:15px; border-top: 1px solid var(--border); padding-top:10px;">
-            <span id="total" style="font-size:1.5rem; color:var(--success);">READY</span>
-            <button class="btn btn-log" onclick="log()">LOG CASE</button>
+        <table id="manifestTable">
+            <thead><tr><th>ITEM</th><th>QTY</th><th>VALUE</th><th>X</th></tr></thead>
+            <tbody id="lockerBody"></tbody>
+        </table>
+        <div style="margin-top:20px; border-top:1px solid var(--border); padding-top:15px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span id="totalDisplay" style="font-size:1.5rem; font-weight:bold; color:var(--success);">0 U</span>
+                <button class="btn btn-log" onclick="archive()">LOG CASE</button>
+            </div>
         </div>
     </div>
 
     <div class="module">
         <h2>[ GLOBAL PRECINCT ARCHIVES ]</h2>
-        <div id="archives">SYNCING...</div>
+        <div id="logBody">INITIALIZING ENCRYPTED SYNC...</div>
+        <button class="btn btn-danger" onclick="renderArchive()">MANUAL REFRESH</button>
     </div>
 </div>
 
 <script>
-    const API = "https://sheetdb.io/api/v1/sn9w3fnrrq26j";
-    let manifest = [];
+    const database = [
+        { name: "AI Valve", val: 12000000 }, { name: "Activated Indium", val: 949 },
+        { name: "Gold", val: 353 }, { name: "Platinum", val: 505 }, { name: "Silver", val: 101 },
+        { name: "Storm Crystal", val: 129150 }, { name: "Hadal Core", val: 61000 },
+        { name: "Larval Core", val: 61000 }, { name: "Walker Brain", val: 35000 },
+        { name: "Gravitino Ball", val: 12500 }, { name: "NipNip Buds", val: 17776 },
+        { name: "GekNip", val: 20000 }, { name: "Stasis Device", val: 15600000 },
+        { name: "Circuit Board", val: 916250 }, { name: "Poly Fibre", val: 130000 },
+        { name: "Delicious Vegetable Stew", val: 18000 }, { name: "Meaty Stew", val: 15000 }
+    ];
+
+    const API_URL = "https://sheetdb.io/api/v1/sn9w3fnrrq26j";
+    let locker = [];
+    let selectedItem = null;
 
     window.onload = () => {
-        document.getElementById('officer').value = localStorage.getItem('gpd_ofc') || '';
-        load();
+        document.getElementById('officer').value = localStorage.getItem('gpd_ofc_name') || '';
+        renderArchive();
     };
 
-    function add() {
-        const val = document.getElementById('asset').value;
-        if(val) manifest.push(val);
-        document.getElementById('asset').value = '';
-        renderLocker();
-    }
+    function saveOfc() { localStorage.setItem('gpd_ofc_name', document.getElementById('officer').value); }
+    function setQ(n) { document.getElementById('qty').value = n; }
 
-    function renderLocker() {
-        const box = document.getElementById('locker');
-        box.innerHTML = manifest.map((item, i) => `<div style="padding:5px; border-bottom:1px solid #111;">${item} <span style="float:right; color:var(--danger);" onclick="manifest.splice(${i},1);renderLocker()">X</span></div>`).join('');
-    }
-
-    async function log() {
-        const o = document.getElementById('officer').value;
-        const s = document.getElementById('suspect').value;
-        if(!o || !s || manifest.length === 0) return alert("INCOMPLETE DATA");
-
-        try {
-            await fetch(API, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ data: [{ officer: o, suspect: s, timestamp: manifest.join(', ') }] })
+    function filterAssets() {
+        const input = document.getElementById('assetSearch').value.toLowerCase();
+        const box = document.getElementById('suggestionBox');
+        box.innerHTML = '';
+        if (input.length < 1) { box.style.display = 'none'; return; }
+        const filtered = database.filter(item => item.name.toLowerCase().includes(input));
+        if (filtered.length > 0) {
+            box.style.display = 'block';
+            filtered.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'suggestion-item';
+                div.innerText = item.name;
+                div.onclick = () => {
+                    document.getElementById('assetSearch').value = item.name;
+                    selectedItem = item;
+                    box.style.display = 'none';
+                };
+                box.appendChild(div);
             });
-            manifest = []; renderLocker(); document.getElementById('suspect').value = '';
-            load();
-        } catch (e) { alert("SYNC ERROR"); }
+        } else { box.style.display = 'none'; }
     }
 
-    async function dispose(susName) {
-        if(!confirm("DELETE PERMANENTLY?")) return;
-        try {
-            await fetch(`${API}/suspect/${susName}`, { method: 'DELETE' });
-            load();
-        } catch (e) { alert("FAILED"); }
+    function addConfirmed() {
+        const nameInput = document.getElementById('assetSearch').value;
+        const item = selectedItem || database.find(x => x.name.toLowerCase() === nameInput.toLowerCase());
+        if(!item) return alert("Asset not found.");
+        const q = parseInt(document.getElementById('qty').value) || 1;
+        const existing = locker.find(x => x.name === item.name);
+        if (existing) existing.qty += q;
+        else locker.push({ name: item.name, val: item.val, qty: q });
+        document.getElementById('assetSearch').value = '';
+        selectedItem = null;
+        updateLocker();
     }
 
-    async function load() {
-        const box = document.getElementById('archives');
+    function updateLocker() {
+        const body = document.getElementById('lockerBody');
+        let total = 0; body.innerHTML = '';
+        locker.forEach((item, idx) => {
+            const sum = item.val * item.qty; total += sum;
+            body.innerHTML += `<tr><td>${item.name}</td><td>x${item.qty}</td><td style="color:var(--success)">${sum.toLocaleString()}</td><td style="color:var(--danger); cursor:pointer;" onclick="locker.splice(${idx},1);updateLocker();">X</td></tr>`;
+        });
+        document.getElementById('totalDisplay').innerText = total.toLocaleString() + " U";
+    }
+
+    async function archive() {
+        const ofc = document.getElementById('officer').value || "OFC. UNKNOWN";
+        const sus = document.getElementById('suspect').value || "SUS. UNKNOWN";
+        if (!locker.length) return alert("Manifest is empty.");
+        const logString = locker.map(i => `${i.qty}x ${i.name}`).join(", ");
+        const totalVal = document.getElementById('totalDisplay').innerText;
+
         try {
-            const res = await fetch(API);
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    data: [{ officer: ofc, suspect: sus, timestamp: `SEIZED: ${logString} (Total: ${totalVal})` }]
+                })
+            });
+            if(response.ok) {
+                alert("REPORT ENCRYPTED & SENT");
+                locker = []; updateLocker(); renderArchive();
+                document.getElementById('suspect').value = '';
+            }
+        } catch (e) { alert("BROADCAST FAILED"); }
+    }
+
+    async function disposeRecord(suspectName) {
+        if(!confirm("DISPOSE OF EVIDENCE & CLEAR LOG?")) return;
+        try {
+            const res = await fetch(`${API_URL}/suspect/${encodeURIComponent(suspectName)}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            if(res.ok) {
+                alert("RECORD PURGED FROM ARCHIVE");
+                renderArchive();
+            }
+        } catch (e) { alert("PURGE FAILED"); }
+    }
+
+    async function renderArchive() {
+        const body = document.getElementById('logBody');
+        body.innerHTML = "DOWNLOADING LOGS...";
+        try {
+            const res = await fetch(API_URL);
             const data = await res.json();
-            box.innerHTML = data.reverse().map(row => `
-                <div class="log-entry">
-                    <div style="color:var(--accent); font-size:0.6rem;">${row.officer || 'UNKN'} | ${new Date().toLocaleDateString()}</div>
-                    <div style="font-weight:bold; margin:5px 0;">SUSPECT: ${row.suspect || 'UNKN'}</div>
-                    <div style="opacity:0.7;">${row.timestamp || 'No Items'}</div>
-                    <button class="btn btn-dispose" onclick="dispose('${row.suspect}')">DISPOSE RECORD</button>
-                </div>
-            `).join('');
-        } catch (e) { box.innerHTML = "CONNECTION ERROR"; }
+            body.innerHTML = '';
+            if(!data.length) { body.innerHTML = "DATABASE EMPTY."; return; }
+            data.reverse().forEach(h => {
+                const o = h.officer || h.Officer || "UNKNOWN";
+                const s = h.suspect || h.Suspect || "TARGET";
+                const t = h.timestamp || h.Timestamp || "RECENT";
+                if(o !== "UNKNOWN") {
+                    body.innerHTML += `<div class="log-entry">
+                        <div style="color:var(--accent); font-size:0.6rem;">${o} | LOGGED</div>
+                        <div style="font-weight:bold;">SUSPECT: ${s}</div>
+                        <div style="opacity:0.8; font-size:0.65rem; margin-top:4px;">${t}</div>
+                        <button class="btn btn-dispose" onclick="disposeRecord('${s}')">DISPOSE EVIDENCE</button>
+                    </div>`;
+                }
+            });
+        } catch (e) { body.innerHTML = "OFFLINE: CHECK CONNECTION"; }
     }
 </script>
 </body>
