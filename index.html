@@ -3,119 +3,142 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GPD | MANHATTAN CONTROL</title>
+    <title>GPD | TOTAL ENFORCER</title>
     <style>
-        :root { --bg: #030507; --glass: rgba(10, 15, 20, 0.98); --border: #1a2a3a; --accent: #00f2ff; --success: #00ff95; --danger: #ff3c3c; --text: #a0c4d1; }
-        body { background: var(--bg); color: var(--text); font-family: 'Courier New', monospace; padding: 10px; margin: 0; }
-        .hud-container { max-width: 600px; margin: auto; display: flex; flex-direction: column; gap: 15px; }
-        .module { background: var(--glass); border: 1px solid var(--border); padding: 20px; border-top: 2px solid var(--accent); position: relative; }
-        h2 { color: var(--accent); font-size: 0.8rem; text-transform: uppercase; margin: 0 0 10px 0; border-bottom: 1px solid var(--border); }
-        input { background: rgba(0,0,0,0.8); border: 1px solid var(--border); color: #fff; padding: 12px; width: 100%; box-sizing: border-box; font-size: 16px !important; margin-bottom: 8px; }
-        .btn { background: none; border: 1px solid var(--accent); color: var(--accent); padding: 12px; cursor: pointer; text-transform: uppercase; font-weight: bold; width: 100%; }
-        .btn-log { background: var(--success); color: #000; border: none; font-size: 1.1rem; margin-top: 5px; }
-        .btn-purge { border: 2px solid var(--danger); color: var(--danger); font-size: 0.8rem; padding: 12px; margin-top: 10px; width: 100%; cursor: pointer; background: rgba(255, 60, 60, 0.1); font-weight: 900; }
-        .log-entry { background: rgba(0,0,0,0.6); border: 1px solid var(--border); padding: 15px; margin-bottom: 12px; border-left: 5px solid var(--success); position: relative; }
-        .ghost-alert { border-left: 5px solid var(--danger) !important; background: rgba(255, 60, 60, 0.2); }
-        .status-badge { font-size: 0.6rem; padding: 2px 5px; border-radius: 2px; text-transform: uppercase; position: absolute; top: 10px; right: 10px; }
+        :root { --bg: #010203; --border: #1a2a3a; --accent: #00f2ff; --danger: #ff3c3c; --success: #00ff95; }
+        body { background: var(--bg); color: #a0c4d1; font-family: 'Courier New', monospace; margin: 0; padding: 10px; }
+        .module { background: rgba(5, 10, 15, 0.98); border: 1px solid var(--border); padding: 15px; border-top: 2px solid var(--accent); margin-bottom: 12px; box-shadow: 0 0 20px rgba(0,242,255,0.1); }
+        h2 { font-size: 0.75rem; color: var(--accent); margin: 0 0 10px 0; letter-spacing: 2px; text-transform: uppercase; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
+        input { background: #000; border: 1px solid var(--border); color: #fff; padding: 12px; width: 100%; box-sizing: border-box; margin-bottom: 5px; font-size: 16px !important; }
+        .btn { width: 100%; padding: 15px; border: none; font-weight: bold; cursor: pointer; text-transform: uppercase; margin-top: 5px; transition: 0.3s; }
+        .btn-log { background: var(--success); color: #000; }
+        .log-entry { background: rgba(0,0,0,0.8); border: 1px solid var(--border); padding: 12px; margin-bottom: 8px; border-left: 4px solid var(--accent); position: relative; }
+        .ghost { border-left-color: var(--danger); background: rgba(255, 60, 60, 0.15); border-right: 1px solid var(--danger); }
+        .btn-terminate { background: rgba(255, 60, 60, 0.2); border: 1px solid var(--danger); color: var(--danger); width: 100%; padding: 10px; margin-top: 8px; font-weight: 900; cursor: pointer; }
+        #botStatus { font-size: 0.65rem; color: var(--accent); text-align: center; margin-bottom: 5px; font-weight: bold; }
+        .pulse { animation: pulse-red 1.5s infinite; }
+        @keyframes pulse-red { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
     </style>
 </head>
 <body>
 
-<div class="hud-container">
-    <div class="module">
-        <h2>[ COMMAND TERMINAL ]</h2>
-        <div style="display:flex; gap:10px;">
-            <input type="text" id="officer" placeholder="OFFICER ID" style="flex:1" onchange="localStorage.setItem('gpd_ofc', this.value)">
-            <input type="text" id="suspect" placeholder="SUSPECT">
-        </div>
-        <input type="text" id="assetSearch" placeholder="ADD EVIDENCE ITEM...">
-        <button class="btn btn-log" onclick="archive()">SECURE FILE TO ARCHIVE</button>
-    </div>
+<div class="module">
+    <h2>[ COMMAND TERMINAL ]</h2>
+    <input type="text" id="officer" placeholder="OFFICER ID" onchange="localStorage.setItem('gpd_ofc', this.value)">
+    <input type="text" id="suspect" placeholder="SUSPECT">
+    <input type="text" id="asset" placeholder="ASSET DATA">
+    <button class="btn btn-log" onclick="archive()">SECURE RECORD</button>
+</div>
 
-    <div class="module">
-        <h2>[ GLOBAL ARCHIVE ENFORCER ]</h2>
-        <div id="logBody">SYNCING WITH MANHATTAN...</div>
-    </div>
+<div class="module">
+    <h2>[ BOT LOGIC CORE ]</h2>
+    <div id="botStatus">READY</div>
+    <div id="retryCount" style="font-size: 0.5rem; text-align: center; opacity: 0.6;"></div>
+    <button class="btn" style="background:var(--danger); color:#000; font-size:0.7rem;" onclick="deepScrub()">EXECUTE DEEP SCRUB (NUKE BLANKS)</button>
+</div>
+
+<div class="module">
+    <h2>[ ENFORCER FEED ]</h2>
+    <div id="logBody">UPLINKING...</div>
 </div>
 
 <script>
     const API_URL = "https://sheetdb.io/api/v1/sn9w3fnrrq26j";
+    let activeHunt = false;
 
     window.onload = () => {
         document.getElementById('officer').value = localStorage.getItem('gpd_ofc') || '';
-        renderArchive();
+        huntLoop();
     };
 
-    async function archive() {
-        const ofc = document.getElementById('officer').value || "UNKNOWN";
-        const sus = document.getElementById('suspect').value.trim();
-        const asset = document.getElementById('assetSearch').value || "NO ASSET LISTED";
+    // --- THE RELENTLESS HUNT LOOP ---
+    async function huntLoop(attempt = 1) {
+        if(activeHunt) return;
+        activeHunt = true;
+        const status = document.getElementById('botStatus');
+        const retry = document.getElementById('retryCount');
         
-        // Protocol: If suspect is missing, mark as GHOST immediately for easy purging
-        const finalSus = sus === "" ? "TARGET_GHOST" : sus;
+        status.innerText = "BOT SCANNING...";
+        status.className = "";
+
+        try {
+            const res = await fetch(API_URL);
+            if (!res.ok) throw new Error("Connection Blocked");
+            const data = await res.json();
+            
+            render(data);
+            status.innerText = "UPLINK STABLE";
+            retry.innerText = "";
+            activeHunt = false;
+        } catch (e) {
+            activeHunt = false;
+            status.innerText = "UPLINK TIMEOUT - RETRYING";
+            status.className = "pulse";
+            retry.innerText = `RE-ROUTING ATTEMPT #${attempt}`;
+            setTimeout(() => huntLoop(attempt + 1), 3000); // 3-second cycle
+        }
+    }
+
+    // --- THE MANHATTAN DEEP SCRUB ---
+    async function deepScrub() {
+        const status = document.getElementById('botStatus');
+        status.innerText = "DEEP SCRUB INITIALIZED...";
+        
+        // Attack the 4 horsemen of ghost data
+        const killList = [
+            `${API_URL}/suspect/`, // Pure Blanks
+            `${API_URL}/suspect/undefined`, // Logic Errors
+            `${API_URL}/suspect/TARGET`, // Identity Errors
+            `${API_URL}/suspect/BLANK` // Placeholder Errors
+        ];
+
+        await Promise.all(killList.map(url => fetch(url, { method: 'DELETE' }).catch(()=>{})));
+        huntLoop();
+    }
+
+    // --- TARGETED TERMINATION ---
+    async function terminate(time, sus) {
+        const btn = event.target;
+        btn.innerText = "EXTERMINATING...";
+        
+        // Parallel Strike
+        await Promise.all([
+            fetch(`${API_URL}/timestamp/${encodeURIComponent(time)}`, { method: 'DELETE' }),
+            fetch(`${API_URL}/suspect/${encodeURIComponent(sus)}`, { method: 'DELETE' })
+        ]).catch(()=>{});
+
+        setTimeout(huntLoop, 1000);
+    }
+
+    async function archive() {
+        const ofc = document.getElementById('officer').value || "UNK";
+        const sus = document.getElementById('suspect').value || "TARGET";
+        const asset = document.getElementById('asset').value || "NO_DATA";
 
         await fetch(API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ data: [{ officer: ofc, suspect: finalSus, timestamp: asset }] })
+            body: JSON.stringify({ data: [{ officer: ofc, suspect: sus, timestamp: asset }] })
         });
         
         document.getElementById('suspect').value = '';
-        document.getElementById('assetSearch').value = '';
-        renderArchive();
+        document.getElementById('asset').value = '';
+        huntLoop();
     }
 
-    async function enforcePurge(timestampVal, suspectVal) {
-        // Manhattan Brute-Force: Delete by any match found
-        const encodedTime = encodeURIComponent(timestampVal);
-        const encodedSus = encodeURIComponent(suspectVal);
-
-        const deleteUrls = [
-            `${API_URL}/timestamp/${encodedTime}`,
-            `${API_URL}/suspect/${encodedSus}`,
-            `${API_URL}/suspect/`, // Kill blanks
-            `${API_URL}/suspect/undefined`,
-            `${API_URL}/suspect/TARGET`,
-            `${API_URL}/suspect/TARGET_GHOST`
-        ];
-
-        // Fire all deletion rounds simultaneously
-        await Promise.all(deleteUrls.map(url => fetch(url, { method: 'DELETE' }).catch(e => {})));
-        
-        // Immediate UI scrub
-        renderArchive();
-    }
-
-    async function renderArchive() {
+    function render(data) {
         const body = document.getElementById('logBody');
-        try {
-            const res = await fetch(API_URL);
-            const data = await res.json();
-            body.innerHTML = '';
-            
-            data.reverse().forEach(h => {
-                const s = h.suspect || "";
-                // Rule: If it's missing data, it's a Ghost. If it's a Ghost, we use the Danger style.
-                const isGhost = (!s || s === "undefined" || s === "TARGET" || s === "TARGET_GHOST" || s === "BLANK_ENTRY");
-                const style = isGhost ? "ghost-alert" : "";
-                const badge = isGhost ? "STATUS: CORRUPT" : "STATUS: SECURE";
-                const badgeColor = isGhost ? "var(--danger)" : "var(--success)";
-
-                body.innerHTML += `
-                    <div class="log-entry ${style}">
-                        <span class="status-badge" style="background:${badgeColor}; color:#000;">${badge}</span>
-                        <div style="font-size:0.6rem; color:var(--accent)">OFC: ${h.officer}</div>
-                        <div style="font-weight:900; margin:5px 0; font-size:1.1rem;">${isGhost ? 'GHOST RECORD' : 'SUSPECT: ' + s}</div>
-                        <div style="font-size:0.7rem; opacity:0.6; border-top:1px solid var(--border); padding-top:5px;">${h.timestamp}</div>
-                        <button class="btn-purge" onclick="this.innerText='PURGING...'; enforcePurge('${h.timestamp}', '${s}')">
-                            ${isGhost ? 'TERMINATE GHOST' : 'DISPOSE EVIDENCE'}
-                        </button>
-                    </div>`;
-            });
-        } catch (e) {
-            body.innerHTML = "<div style='color:var(--danger); font-weight:bold;'>UPLINK FAILURE - RETRYING...</div>";
-            setTimeout(renderArchive, 2000);
-        }
+        body.innerHTML = '';
+        data.reverse().forEach(h => {
+            const isGhost = (!h.suspect || h.suspect === "TARGET" || h.suspect === "undefined");
+            body.innerHTML += `
+                <div class="log-entry ${isGhost ? 'ghost' : ''}">
+                    <div style="font-size:0.5rem; color:var(--accent)">OFC: ${h.officer}</div>
+                    <div style="font-weight:bold; font-size:0.9rem;">${isGhost ? 'CORRUPT RECORD' : 'SUSPECT: ' + h.suspect}</div>
+                    <div style="font-size:0.7rem; opacity:0.6;">${h.timestamp}</div>
+                    <button class="btn-terminate" onclick="terminate('${h.timestamp}', '${h.suspect}')">TERMINATE</button>
+                </div>`;
+        });
     }
 </script>
 </body>
