@@ -9,113 +9,63 @@
             --bg: #030507; --glass: rgba(10, 15, 20, 0.98); --border: #1a2a3a; 
             --accent: #00f2ff; --success: #00ff95; --danger: #ff3c3c; --text: #a0c4d1; --warn: #ffcc00;
         }
-        
-        body { 
-            background: var(--bg); color: var(--text); font-family: 'Courier New', monospace; 
-            padding: 10px; margin: 0; background-image: radial-gradient(circle at 50% 50%, #0d1a21 0%, #05080a 100%);
-        }
-
+        body { background: var(--bg); color: var(--text); font-family: 'Courier New', monospace; padding: 10px; margin: 0; background-image: radial-gradient(circle at 50% 50%, #0d1a21 0%, #05080a 100%); }
         .hud-container { max-width: 600px; margin: auto; display: flex; flex-direction: column; gap: 15px; }
-
-        .module { 
-            background: var(--glass); border: 1px solid var(--border); padding: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8); border-top: 2px solid var(--accent);
-        }
-
+        .module { background: var(--glass); border: 1px solid var(--border); padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); border-top: 2px solid var(--accent); }
         h2 { color: var(--accent); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 15px 0; border-bottom: 1px solid var(--border); padding-bottom: 5px;}
-
         label { display: block; font-size: 0.65rem; color: var(--accent); margin-bottom: 5px; text-transform: uppercase; }
-
-        input, textarea { 
-            background: rgba(0,0,0,0.8); border: 1px solid var(--border); color: #fff; 
-            padding: 12px; width: 100%; box-sizing: border-box; font-size: 16px !important; border-radius: 2px; margin-bottom: 5px;
-            font-family: inherit;
-        }
-
+        input { background: rgba(0,0,0,0.8); border: 1px solid var(--border); color: #fff; padding: 12px; width: 100%; box-sizing: border-box; font-size: 16px !important; border-radius: 2px; margin-bottom: 5px; font-family: inherit; }
         .search-container { position: relative; margin-bottom: 15px; }
-        .suggestions { 
-            position: absolute; top: 100%; left: 0; right: 0; 
-            background: #0a0f14; border: 1px solid var(--accent); z-index: 100;
-            max-height: 250px; overflow-y: auto; display: none;
-        }
+        .suggestions { position: absolute; top: 100%; left: 0; right: 0; background: #0a0f14; border: 1px solid var(--accent); z-index: 100; max-height: 250px; overflow-y: auto; display: none; }
         .suggestion-item { padding: 12px; cursor: pointer; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
         .suggestion-item:hover { background: var(--accent); color: #000; }
-
-        .btn { 
-            background: none; border: 1px solid var(--accent); color: var(--accent); 
-            padding: 12px; cursor: pointer; text-transform: uppercase; font-weight: bold; font-size: 0.8rem;
-        }
+        .btn { background: none; border: 1px solid var(--accent); color: var(--accent); padding: 12px; cursor: pointer; text-transform: uppercase; font-weight: bold; font-size: 0.8rem; }
         .btn-add { background: var(--accent); color: #000; width: 100%; margin-top: 10px; border: none; }
         .btn-log { background: var(--success); color: #000; border: none; width: 100%; font-size: 1rem; margin-top: 15px; }
         .btn-retrieve { font-size: 0.6rem; border: 1px solid var(--warn); color: var(--warn); padding: 4px 8px; }
         .btn-danger { color: #ff3c3c; border: 1px solid #ff3c3c; width: 100%; margin-top: 20px; opacity: 0.6; }
-
         table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.8rem; }
         th { text-align: left; color: var(--accent); padding: 10px; border-bottom: 1px solid var(--border); }
         td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-
         .log-entry { background: rgba(0,0,0,0.4); border: 1px solid var(--border); padding: 12px; margin-bottom: 10px; border-left: 4px solid var(--accent); font-size: 0.75rem; word-wrap: break-word; }
-        
-        #uplink-status { font-size: 0.6rem; text-align: right; margin-top: -10px; margin-bottom: 10px; color: var(--accent); font-weight: bold; }
+        #status-msg { font-size: 0.6rem; text-align: right; color: var(--accent); font-weight: bold; margin-bottom: 5px; }
     </style>
 </head>
 <body>
-
 <div class="hud-container">
     <div class="module">
         <h2>[ COMMAND TERMINAL ]</h2>
-        <div id="uplink-status">UPLINK STABLE</div>
+        <div id="status-msg">UPLINK STABLE</div>
         <div style="display:flex; gap:10px;">
-            <div style="flex:1">
-                <label>OFFICER</label>
-                <input type="text" id="officer" placeholder="Badge ID" onchange="saveOfc()">
-            </div>
-            <div style="flex:1">
-                <label>SUSPECT</label>
-                <input type="text" id="suspect" placeholder="Subject Name">
-            </div>
+            <div style="flex:1"><label>OFFICER</label><input type="text" id="officer" onchange="saveOfc()"></div>
+            <div style="flex:1"><label>SUSPECT</label><input type="text" id="suspect"></div>
         </div>
-
         <label>SEARCH DATABASE</label>
-        <div class="search-container">
-            <input type="text" id="assetSearch" placeholder="Type to search..." onkeyup="filterAssets()">
-            <div id="suggestionBox" class="suggestions"></div>
-        </div>
-
+        <div class="search-container"><input type="text" id="assetSearch" onkeyup="filterAssets()"><div id="suggestionBox" class="suggestions"></div></div>
         <label>QUANTITY</label>
         <div style="display:flex; gap:5px; margin-bottom:10px;">
-            <button class="btn" onclick="setQ(1)">1x</button>
-            <button class="btn" onclick="setQ(250)">250x</button>
-            <input type="number" id="qty" value="1" style="background:rgba(0,0,0,0.8); border:1px solid var(--border); color:#fff; width:100%; text-align:center;">
+            <button class="btn" onclick="setQ(1)">1x</button><button class="btn" onclick="setQ(250)">250x</button>
+            <input type="number" id="qty" value="1" style="text-align:center;">
         </div>
         <button class="btn btn-add" onclick="addConfirmed()">ADD TO MANIFEST</button>
     </div>
-
     <div class="module">
         <h2>[ SEIZURE MANIFEST ]</h2>
-        <table id="manifestTable">
-            <thead><tr><th>ITEM</th><th>QTY</th><th>VALUE</th><th>X</th></tr></thead>
-            <tbody id="lockerBody"></tbody>
-        </table>
-        
-        <div style="margin-top:20px; border-top:1px solid var(--border); padding-top:15px;">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span id="totalDisplay" style="font-size:1.5rem; font-weight:bold; color:var(--success);">0 U</span>
-                <button class="btn btn-log" style="width:200px;" id="logBtn" onclick="archive()">LOG CASE</button>
-            </div>
+        <table id="manifestTable"><thead><tr><th>ITEM</th><th>QTY</th><th>VALUE</th><th>X</th></tr></thead><tbody id="lockerBody"></tbody></table>
+        <div style="margin-top:20px; border-top:1px solid var(--border); padding-top:15px; display:flex; justify-content:space-between; align-items:center;">
+            <span id="totalDisplay" style="font-size:1.5rem; color:var(--success);">0 U</span>
+            <button class="btn btn-log" id="logBtn" onclick="archive()">LOG CASE</button>
         </div>
     </div>
-
     <div class="module">
-        <h2>[ PRECINCT ARCHIVES ]</h2>
-        <div id="logBody"></div>
+        <h2>[ PRECINCT ARCHIVES ]</h2><div id="logBody"></div>
         <button class="btn btn-danger" onclick="wipeAll()">WIPE ALL RECORDS</button>
     </div>
 </div>
 
 <script>
-    // PUT YOUR GOOGLE WEB APP URL HERE
-    const UPLINK_URL = 'https://script.google.com/macros/s/AKfycbzLreR6lXzWjP0-496YgD-f6Y9yL7v-8N1ZqU5xX3g7y1q/exec';
+    // YOUR UNIQUE MANHATTAN UPLINK
+    const UPLINK_URL = 'https://script.google.com/macros/s/AKfycbzVs4oRFjYlZq0_1TEYw3AVx8CZVcVZvO04Gf8CeYjkFfZFSowJndnI4bY_7KTiN-xaRg/exec';
 
     const database = [
         { name: "AI Valve", val: 12000000 }, { name: "Activated Indium", val: 949 },
@@ -128,15 +78,8 @@
         { name: "Delicious Vegetable Stew", val: 18000 }, { name: "Meaty Stew", val: 15000 }
     ];
 
-    let locker = [];
-    let archiveData = JSON.parse(localStorage.getItem('gpd_v21_9_data')) || [];
-    let selectedItem = null;
-
-    window.onload = () => {
-        document.getElementById('officer').value = localStorage.getItem('gpd_ofc_name') || '';
-        renderArchive();
-    };
-
+    let locker = [], archiveData = JSON.parse(localStorage.getItem('gpd_v21_9_data')) || [], selectedItem = null;
+    window.onload = () => { document.getElementById('officer').value = localStorage.getItem('gpd_ofc_name') || ''; renderArchive(); };
     function saveOfc() { localStorage.setItem('gpd_ofc_name', document.getElementById('officer').value); }
     function setQ(n) { document.getElementById('qty').value = n; }
 
@@ -145,134 +88,74 @@
         const box = document.getElementById('suggestionBox');
         box.innerHTML = '';
         if (input.length < 1) { box.style.display = 'none'; return; }
-        const filtered = database.filter(item => item.name.toLowerCase().includes(input));
+        const filtered = database.filter(i => i.name.toLowerCase().includes(input));
         if (filtered.length > 0) {
             box.style.display = 'block';
             filtered.forEach(item => {
-                const div = document.createElement('div');
-                div.className = 'suggestion-item';
-                div.innerText = item.name;
-                div.onclick = () => {
-                    document.getElementById('assetSearch').value = item.name;
-                    selectedItem = item;
-                    box.style.display = 'none';
-                };
+                const div = document.createElement('div'); div.className = 'suggestion-item'; div.innerText = item.name;
+                div.onclick = () => { document.getElementById('assetSearch').value = item.name; selectedItem = item; box.style.display = 'none'; };
                 box.appendChild(div);
             });
-        } else { box.style.display = 'none'; }
+        }
     }
 
     function addConfirmed() {
-        const nameInput = document.getElementById('assetSearch').value;
-        const item = selectedItem || database.find(x => x.name.toLowerCase() === nameInput.toLowerCase());
-        if(!item) return alert("Asset not found.");
+        const item = selectedItem || database.find(x => x.name.toLowerCase() === document.getElementById('assetSearch').value.toLowerCase());
+        if(!item) return;
         const q = parseInt(document.getElementById('qty').value) || 1;
-        const existing = locker.find(x => x.name === item.name);
-        if (existing) existing.qty += q;
-        else locker.push({ name: item.name, val: item.val, qty: q });
-        document.getElementById('assetSearch').value = '';
-        selectedItem = null;
-        updateLocker();
+        const exist = locker.find(x => x.name === item.name);
+        if (exist) exist.qty += q; else locker.push({ name: item.name, val: item.val, qty: q });
+        document.getElementById('assetSearch').value = ''; selectedItem = null; updateLocker();
     }
 
     function updateLocker() {
-        const body = document.getElementById('lockerBody');
-        let total = 0; body.innerHTML = '';
+        const body = document.getElementById('lockerBody'); let total = 0; body.innerHTML = '';
         locker.forEach((item, idx) => {
             const sum = item.val * item.qty; total += sum;
-            body.innerHTML += `<tr>
-                <td>${item.name}</td>
-                <td>x${item.qty}</td>
-                <td style="color:var(--success)">${sum.toLocaleString()}</td>
-                <td style="color:var(--danger); cursor:pointer;" onclick="locker.splice(${idx},1);updateLocker();">X</td>
-            </tr>`;
+            body.innerHTML += `<tr><td>${item.name}</td><td>x${item.qty}</td><td style="color:var(--success)">${sum.toLocaleString()}</td><td style="color:var(--danger); cursor:pointer;" onclick="locker.splice(${idx},1);updateLocker();">X</td></tr>`;
         });
         document.getElementById('totalDisplay').innerText = total.toLocaleString() + " U";
     }
 
     async function archive() {
-        if (!locker.length) return alert("Manifest is empty.");
-        const logBtn = document.getElementById('logBtn');
-        const status = document.getElementById('uplink-status');
-        
-        const caseRecord = {
-            ofc: document.getElementById('officer').value || "OFC. UNKNOWN",
-            sus: document.getElementById('suspect').value || "SUS. UNKNOWN",
-            items: [...locker],
-            total: document.getElementById('totalDisplay').innerText,
-            date: new Date().toLocaleString()
+        if (!locker.length) return;
+        const btn = document.getElementById('logBtn'); const status = document.getElementById('status-msg');
+        const record = {
+            ofc: document.getElementById('officer').value || "UNKNOWN",
+            sus: document.getElementById('suspect').value || "UNKNOWN",
+            items: [...locker], total: document.getElementById('totalDisplay').innerText, date: new Date().toLocaleString()
         };
-
-        // 1. Local Save (Functionality Kept)
-        archiveData.unshift(caseRecord);
-        localStorage.setItem('gpd_v21_9_data', JSON.stringify(archiveData));
+        archiveData.unshift(record); localStorage.setItem('gpd_v21_9_data', JSON.stringify(archiveData));
         
-        // 2. Manhattan Uplink (The New Stable Tech)
-        logBtn.innerText = "UPLINKING...";
-        logBtn.disabled = true;
-        status.innerText = "CONNECTING TO MANHATTAN...";
+        btn.innerText = "UPLINKING..."; btn.disabled = true; status.innerText = "UPLINKING TO MANHATTAN...";
 
         try {
-            const formData = new URLSearchParams();
-            formData.append('officer', caseRecord.ofc);
-            formData.append('suspect', caseRecord.sus);
-            formData.append('timestamp', caseRecord.date);
-            formData.append('manifest', caseRecord.items.map(i => `${i.qty}x ${i.name}`).join(", "));
+            const params = new URLSearchParams();
+            params.append('officer', record.ofc); params.append('suspect', record.sus);
+            params.append('timestamp', record.date); params.append('manifest', record.items.map(i => `${i.qty}x ${i.name}`).join(", "));
+            await fetch(UPLINK_URL, { method: 'POST', mode: 'no-cors', body: params });
+            status.innerText = "UPLINK SUCCESSFUL"; status.style.color = "var(--success)";
+        } catch (e) { status.innerText = "UPLINK FAILED - LOCAL ONLY"; status.style.color = "var(--danger)"; }
 
-            await fetch(UPLINK_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                body: formData
-            });
-
-            status.innerText = "UPLINK SUCCESSFUL";
-            status.style.color = "var(--success)";
-        } catch (e) {
-            status.innerText = "LOCAL SAVE ONLY - UPLINK OFFLINE";
-            status.style.color = "var(--danger)";
-        }
-
-        // Cleanup
-        locker = []; 
-        updateLocker(); 
-        renderArchive();
-        document.getElementById('suspect').value = '';
-        logBtn.innerText = "LOG CASE";
-        logBtn.disabled = false;
-        setTimeout(() => { 
-            status.innerText = "UPLINK STABLE"; 
-            status.style.color = "var(--accent)";
-        }, 3000);
-    }
-
-    function retrieve(index) {
-        const caseData = archiveData[index];
-        document.getElementById('suspect').value = caseData.sus;
-        locker = [...caseData.items];
-        archiveData.splice(index, 1);
-        localStorage.setItem('gpd_v21_9_data', JSON.stringify(archiveData));
-        updateLocker();
-        renderArchive();
+        locker = []; updateLocker(); renderArchive(); document.getElementById('suspect').value = '';
+        btn.innerText = "LOG CASE"; btn.disabled = false;
+        setTimeout(() => { status.innerText = "UPLINK STABLE"; status.style.color = "var(--accent)"; }, 3000);
     }
 
     function renderArchive() {
-        const body = document.getElementById('logBody');
-        body.innerHTML = '';
+        const body = document.getElementById('logBody'); body.innerHTML = '';
         archiveData.forEach((h, idx) => {
-            const list = h.items.map(i => `${i.qty}x ${i.name}`).join(", ");
-            body.innerHTML += `<div class="log-entry">
-                <div style="color:var(--accent); font-size:0.6rem;">${h.ofc} | ${h.date}</div>
-                <div style="font-weight:bold;">SUSPECT: ${h.sus}</div>
-                <div style="opacity:0.8; margin-bottom:10px;">${list}</div>
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span style="color:var(--success); font-weight:bold;">${h.total}</span>
-                    <button class="btn btn-retrieve" onclick="retrieve(${idx})">RETRIEVE</button>
-                </div>
-            </div>`;
+            body.innerHTML += `<div class="log-entry"><div style="color:var(--accent); font-size:0.6rem;">${h.ofc} | ${h.date}</div><div><b>SUSPECT:</b> ${h.sus}</div><div style="opacity:0.8; font-size:0.65rem;">${h.items.map(i => i.qty+'x '+i.name).join(", ")}</div><div style="display:flex; justify-content:space-between; margin-top:5px;"><span style="color:var(--success)">${h.total}</span><button class="btn btn-retrieve" onclick="retrieve(${idx})">RETRIEVE</button></div></div>`;
         });
     }
 
-    function wipeAll() { if(confirm("DELETE ALL PRECINCT DATA?")) { archiveData = []; localStorage.removeItem('gpd_v21_9_data'); renderArchive(); } }
+    function retrieve(idx) {
+        const data = archiveData[idx]; document.getElementById('suspect').value = data.sus;
+        locker = [...data.items]; archiveData.splice(idx, 1);
+        localStorage.setItem('gpd_v21_9_data', JSON.stringify(archiveData)); updateLocker(); renderArchive();
+    }
+
+    function wipeAll() { if(confirm("DELETE ALL RECORDS?")) { archiveData = []; localStorage.removeItem('gpd_v21_9_data'); renderArchive(); } }
 </script>
 </body>
 </html>
