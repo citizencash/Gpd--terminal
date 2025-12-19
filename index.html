@@ -24,24 +24,13 @@
             background: rgba(0,0,0,0.8); border: 1px solid var(--border); color: #fff; 
             padding: 12px; width: 100%; box-sizing: border-box; font-size: 16px !important; border-radius: 2px; margin-bottom: 5px;
         }
-        .search-container { position: relative; margin-bottom: 15px; }
-        .suggestions { 
-            position: absolute; top: 100%; left: 0; right: 0; 
-            background: #0a0f14; border: 1px solid var(--accent); z-index: 100;
-            max-height: 250px; overflow-y: auto; display: none;
-        }
-        .suggestion-item { padding: 12px; cursor: pointer; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
-        .suggestion-item:hover { background: var(--accent); color: #000; }
         .btn { 
             background: none; border: 1px solid var(--accent); color: var(--accent); 
             padding: 12px; cursor: pointer; text-transform: uppercase; font-weight: bold; font-size: 0.8rem;
         }
         .btn-add { background: var(--accent); color: #000; width: 100%; margin-top: 10px; border: none; }
         .btn-log { background: var(--success); color: #000; border: none; width: 100%; font-size: 1rem; margin-top: 15px; }
-        .btn-dispose { font-size: 0.6rem; border: 1px solid var(--danger); color: var(--danger); padding: 5px 10px; margin-top: 10px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.8rem; }
-        th { text-align: left; color: var(--accent); padding: 10px; border-bottom: 1px solid var(--border); }
-        td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .btn-dispose { font-size: 0.6rem; border: 1px solid var(--danger); color: var(--danger); padding: 8px; width: 100%; margin-top: 10px; background: rgba(255, 60, 60, 0.1); }
         .log-entry { background: rgba(0,0,0,0.4); border: 1px solid var(--border); padding: 12px; margin-bottom: 10px; border-left: 4px solid var(--accent); font-size: 0.75rem; }
     </style>
 </head>
@@ -60,55 +49,31 @@
                 <input type="text" id="suspect" placeholder="Subject Name">
             </div>
         </div>
-        <label>SEARCH DATABASE</label>
-        <div class="search-container">
-            <input type="text" id="assetSearch" placeholder="Type to search..." onkeyup="filterAssets()">
-            <div id="suggestionBox" class="suggestions"></div>
-        </div>
-        <label>QUANTITY</label>
-        <div style="display:flex; gap:5px; margin-bottom:10px;">
-            <button class="btn" onclick="setQ(1)">1x</button>
-            <button class="btn" onclick="setQ(250)">250x</button>
-            <input type="number" id="qty" value="1" style="background:rgba(0,0,0,0.8); border:1px solid var(--border); color:#fff; width:100%; text-align:center;">
-        </div>
+        <input type="text" id="assetSearch" placeholder="Asset search..." onkeyup="filterAssets()">
+        <div id="suggestionBox" style="display:none; background:#000; border:1px solid var(--accent); position:absolute; z-index:10;"></div>
         <button class="btn btn-add" onclick="addConfirmed()">ADD TO MANIFEST</button>
     </div>
 
     <div class="module">
         <h2>[ SEIZURE MANIFEST ]</h2>
         <table id="manifestTable">
-            <thead><tr><th>ITEM</th><th>QTY</th><th>VALUE</th><th>X</th></tr></thead>
             <tbody id="lockerBody"></tbody>
         </table>
-        <div style="margin-top:20px; border-top:1px solid var(--border); padding-top:15px;">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span id="totalDisplay" style="font-size:1.5rem; font-weight:bold; color:var(--success);">0 U</span>
-                <button class="btn btn-log" style="width:200px;" onclick="archive()">LOG CASE</button>
-            </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:15px;">
+            <span id="totalDisplay" style="font-size:1.5rem; color:var(--success);">0 U</span>
+            <button class="btn btn-log" style="width:150px;" onclick="archive()">LOG CASE</button>
         </div>
     </div>
 
     <div class="module">
         <h2>[ GLOBAL PRECINCT ARCHIVES ]</h2>
-        <div id="logBody">SYNCING LOGS...</div>
-        <button class="btn" style="width:100%; margin-top:10px; font-size:0.6rem; opacity:0.5;" onclick="renderArchive()">REFRESH GLOBAL LOGS</button>
+        <div id="logBody">SYNCING...</div>
     </div>
 </div>
 
 <script>
-    const database = [
-        { name: "AI Valve", val: 12000000 }, { name: "Activated Indium", val: 949 },
-        { name: "Gold", val: 353 }, { name: "Platinum", val: 505 }, { name: "Silver", val: 101 },
-        { name: "Storm Crystal", val: 129150 }, { name: "Hadal Core", val: 61000 },
-        { name: "Larval Core", val: 61000 }, { name: "Walker Brain", val: 35000 },
-        { name: "Gravitino Ball", val: 12500 }, { name: "NipNip Buds", val: 17776 },
-        { name: "GekNip", val: 20000 }, { name: "Stasis Device", val: 15600000 },
-        { name: "Circuit Board", val: 916250 }, { name: "Poly Fibre", val: 130000 }
-    ];
-
     const API_URL = "https://sheetdb.io/api/v1/sn9w3fnrrq26j";
     let locker = [];
-    let selectedItem = null;
 
     window.onload = () => {
         document.getElementById('officer').value = localStorage.getItem('gpd_ofc_name') || '';
@@ -116,108 +81,77 @@
     };
 
     function saveOfc() { localStorage.setItem('gpd_ofc_name', document.getElementById('officer').value); }
-    function setQ(n) { document.getElementById('qty').value = n; }
-
-    function filterAssets() {
-        const input = document.getElementById('assetSearch').value.toLowerCase();
-        const box = document.getElementById('suggestionBox');
-        box.innerHTML = '';
-        if (input.length < 1) { box.style.display = 'none'; return; }
-        const filtered = database.filter(item => item.name.toLowerCase().includes(input));
-        if (filtered.length > 0) {
-            box.style.display = 'block';
-            filtered.forEach(item => {
-                const div = document.createElement('div');
-                div.className = 'suggestion-item';
-                div.innerText = item.name;
-                div.onclick = () => {
-                    document.getElementById('assetSearch').value = item.name;
-                    selectedItem = item;
-                    box.style.display = 'none';
-                };
-                box.appendChild(div);
-            });
-        } else { box.style.display = 'none'; }
-    }
-
+    
     function addConfirmed() {
-        const nameInput = document.getElementById('assetSearch').value;
-        const item = selectedItem || database.find(x => x.name.toLowerCase() === nameInput.toLowerCase());
-        if(!item) return alert("Asset not found.");
-        const q = parseInt(document.getElementById('qty').value) || 1;
-        const existing = locker.find(x => x.name === item.name);
-        if (existing) existing.qty += q;
-        else locker.push({ name: item.name, val: item.val, qty: q });
-        document.getElementById('assetSearch').value = '';
-        selectedItem = null;
+        const item = document.getElementById('assetSearch').value;
+        if(!item) return;
+        locker.push({ name: item, qty: 1 });
         updateLocker();
     }
 
     function updateLocker() {
         const body = document.getElementById('lockerBody');
-        let total = 0; body.innerHTML = '';
+        body.innerHTML = '';
         locker.forEach((item, idx) => {
-            const sum = item.val * item.qty; total += sum;
-            body.innerHTML += `<tr><td>${item.name}</td><td>x${item.qty}</td><td style="color:var(--success)">${sum.toLocaleString()}</td><td style="color:var(--danger); cursor:pointer;" onclick="locker.splice(${idx},1);updateLocker();">X</td></tr>`;
+            body.innerHTML += `<tr><td>${item.name}</td><td><button onclick="locker.splice(${idx},1);updateLocker()">X</button></td></tr>`;
         });
-        document.getElementById('totalDisplay').innerText = total.toLocaleString() + " U";
     }
 
     async function archive() {
-        const ofc = document.getElementById('officer').value || "OFC. UNKNOWN";
-        const sus = document.getElementById('suspect').value || "SUS. UNKNOWN";
-        if (!locker.length) return alert("Manifest is empty.");
-        const logString = locker.map(i => `${i.qty}x ${i.name}`).join(", ");
-        const totalVal = document.getElementById('totalDisplay').innerText;
-
+        const ofc = document.getElementById('officer').value;
+        const sus = document.getElementById('suspect').value;
+        const items = locker.map(i => i.name).join(", ");
+        
         try {
             await fetch(API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    data: [{ officer: ofc, suspect: `${sus} | SEIZED: ${logString} (Total: ${totalVal})`, timestamp: new Date().toLocaleString() }]
+                    data: [{ officer: ofc, suspect: sus, timestamp: items }] // Simplified for easier deletion
                 })
             });
-            alert("CASE LOGGED GLOBALLY");
+            alert("LOGGED");
             locker = []; updateLocker(); renderArchive();
-            document.getElementById('suspect').value = '';
-        } catch (e) { alert("SYNC FAILED"); }
+        } catch (e) { alert("ERROR"); }
     }
 
-    async function disposeEvidence(suspectName, officerName) {
-        if(!confirm("DISPOSE OF THIS EVIDENCE? (Will remove from Global Archive)")) return;
+    async function disposeEvidence(susName) {
+        if(!confirm("PERMANENTLY DISPOSE OF THIS RECORD?")) return;
         
+        // This targets the row by Suspect Name only - much more reliable
         try {
-            // This deletes the row from the Google Sheet matching the suspect name
-            await fetch(`${API_URL}/suspect/${encodeURIComponent(suspectName)}`, {
+            const res = await fetch(`${API_URL}/suspect/${susName}`, {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' }
             });
-            alert("EVIDENCE DISPOSED / REMOVED FROM DATABASE");
+            const result = await res.json();
+            
+            if(result.deleted > 0) {
+                alert("EVIDENCE DISPOSED");
+            } else {
+                alert("RECORD NOT FOUND - Refreshing...");
+            }
             renderArchive();
-        } catch (e) { alert("DISPOSAL FAILED: Record might be locked."); }
+        } catch (e) { alert("SYSTEM ERROR"); }
     }
 
     async function renderArchive() {
         const body = document.getElementById('logBody');
-        body.innerHTML = "FETCHING LOGS...";
         try {
             const res = await fetch(API_URL);
             const data = await res.json();
             body.innerHTML = '';
-            if(!data.length) { body.innerHTML = "DATABASE EMPTY."; return; }
             data.reverse().forEach(h => {
-                const o = h.officer || h.Officer || "UNKNOWN";
-                const s = h.suspect || h.Suspect || "TARGET";
-                const t = h.timestamp || h.Timestamp || "RECENT";
+                const s = h.suspect || h.Suspect;
+                const o = h.officer || h.Officer;
                 body.innerHTML += `
                     <div class="log-entry">
-                        <div style="color:var(--accent); font-size:0.6rem;">${o} | ${t}</div>
-                        <div style="font-weight:bold;">${s}</div>
-                        <button class="btn btn-dispose" onclick="disposeEvidence('${s}', '${o}')">DISPOSE / REMOVE RECORD</button>
+                        <b>OFFICER: ${o}</b><br>
+                        SUSPECT: ${s}<br>
+                        <button class="btn btn-dispose" onclick="disposeEvidence('${s}')">DISPOSE RECORD</button>
                     </div>`;
             });
-        } catch (e) { body.innerHTML = "CONNECTION ERROR."; }
+        } catch (e) { body.innerHTML = "OFFLINE"; }
     }
 </script>
 </body>
