@@ -3,146 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>APSD | EVIDENCE ROOM v3.0</title>
+    <title>APSD | EVIDENCE ROOM v3.2</title>
     <style>
         :root { 
-            --bg: #05080a; 
-            --glass: rgba(12, 20, 28, 0.95); 
-            --border: #2a3f52; 
-            --accent: #00f2ff; 
-            --success: #39ff14; 
-            --danger: #ff003c; 
-            --text: #e0f2f7; 
-            --warn: #ffcc00;
-            --panel-bg: rgba(0, 20, 30, 0.6);
+            --bg: #05080a; --glass: rgba(12, 20, 28, 0.95); --border: #2a3f52; 
+            --accent: #00f2ff; --success: #39ff14; --danger: #ff003c; 
+            --text: #e0f2f7; --warn: #ffcc00; --panel-bg: rgba(0, 20, 30, 0.6);
         }
-        
         body { 
-            background: var(--bg); 
-            color: var(--text); 
-            font-family: 'Courier New', monospace; 
-            padding: 10px; 
-            margin: 0; 
-            overflow-x: hidden;
-            background-image: 
-                linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
-                linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background: var(--bg); color: var(--text); font-family: 'Courier New', monospace; padding: 10px; margin: 0; overflow-x: hidden;
+            background-image: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
             background-size: 100% 2px, 3px 100%;
         }
-
-        /* Scanline Overlay Effect */
         body::before {
-            content: " ";
-            display: block;
-            position: fixed;
-            top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), 
-                        linear-gradient(90deg, rgba(255, 0, 0, 0.05), rgba(0, 255, 0, 0.03), rgba(0, 0, 255, 0.05));
-            z-index: 2;
-            pointer-events: none;
-            background-size: 100% 2px, 3px 100%;
+            content: " "; display: block; position: fixed; top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.05), rgba(0, 255, 0, 0.03), rgba(0, 0, 255, 0.05));
+            z-index: 2; pointer-events: none; background-size: 100% 2px, 3px 100%;
         }
-
         .hud-container { max-width: 600px; margin: auto; display: flex; flex-direction: column; gap: 20px; position: relative; z-index: 3; }
-
         .module { 
-            background: var(--glass); 
-            border: 1px solid var(--border); 
-            padding: 20px;
-            position: relative;
-            box-shadow: inset 0 0 15px rgba(0,242,255,0.1);
-            clip-path: polygon(0 0, 95% 0, 100% 5%, 100% 100%, 5% 100%, 0 95%);
+            background: var(--glass); border: 1px solid var(--border); padding: 20px; position: relative;
+            box-shadow: inset 0 0 15px rgba(0,242,255,0.1); clip-path: polygon(0 0, 95% 0, 100% 5%, 100% 100%, 5% 100%, 0 95%);
         }
-
-        .module::after {
-            content: "SECURED_NETWORK";
-            position: absolute;
-            top: 5px; right: 15px;
-            font-size: 0.5rem;
-            color: var(--border);
-        }
-
-        h2 { 
-            color: var(--accent); 
-            font-size: 1rem; 
-            text-transform: uppercase; 
-            letter-spacing: 3px; 
-            margin: 0 0 20px 0; 
-            display: flex;
-            align-items: center;
-        }
-
+        .module::after { content: "APSD_ENCRYPTED"; position: absolute; top: 5px; right: 15px; font-size: 0.5rem; color: var(--border); }
+        h2 { color: var(--accent); font-size: 1rem; text-transform: uppercase; letter-spacing: 3px; margin: 0 0 20px 0; display: flex; align-items: center; }
         h2::before { content: "► "; font-size: 0.8rem; margin-right: 10px; }
-
         label { display: block; font-size: 0.65rem; color: var(--accent); margin-bottom: 8px; text-transform: uppercase; font-weight: bold; }
-
-        input { 
-            background: var(--panel-bg); 
-            border: 1px solid var(--border); 
-            color: #fff; 
-            padding: 15px; 
-            width: 100%; 
-            box-sizing: border-box; 
-            font-size: 16px !important; 
-            margin-bottom: 10px;
-            font-family: inherit;
-            outline: none;
-            transition: 0.3s;
-        }
-
-        input:focus { border-color: var(--accent); box-shadow: 0 0 10px rgba(0,242,255,0.3); }
-
-        .btn { 
-            background: none; 
-            border: 1px solid var(--accent); 
-            color: var(--accent); 
-            padding: 15px; 
-            cursor: pointer; 
-            text-transform: uppercase; 
-            font-weight: bold; 
-            font-size: 0.8rem;
-            transition: 0.2s;
-        }
-
-        .btn:active { background: var(--accent); color: #000; }
-
+        input { background: var(--panel-bg); border: 1px solid var(--border); color: #fff; padding: 15px; width: 100%; box-sizing: border-box; font-size: 16px !important; margin-bottom: 10px; font-family: inherit; outline: none; transition: 0.3s; }
+        .btn { background: none; border: 1px solid var(--accent); color: var(--accent); padding: 15px; cursor: pointer; text-transform: uppercase; font-weight: bold; font-size: 0.8rem; transition: 0.2s; }
         .btn-add { background: var(--accent); color: #000; width: 100%; margin-top: 10px; border: none; font-size: 1rem; }
-        .btn-log { background: var(--success); color: #000; border: none; padding: 15px 30px; font-size: 1rem; border-radius: 4px; }
-
+        .btn-log { background: var(--success); color: #000; border: none; padding: 15px 30px; font-size: 1rem; border-radius: 4px; box-shadow: 0 0 10px rgba(57, 255, 20, 0.4); }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem; }
-        th { text-align: left; color: var(--accent); padding: 12px; border-bottom: 2px solid var(--border); font-size: 0.7rem; }
+        th { text-align: left; color: var(--accent); padding: 12px; border-bottom: 2px solid var(--border); }
         td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-
-        .evidence-tag { 
-            background: rgba(0,0,0,0.5); 
-            border-left: 5px solid var(--accent); 
-            padding: 15px; 
-            margin-bottom: 15px; 
-            position: relative;
-            animation: flicker 0.1s infinite alternate;
-        }
-
-        @keyframes flicker {
-            0% { opacity: 0.98; }
-            100% { opacity: 1; }
-        }
-
-        #uplink-status { 
-            font-size: 0.6rem; 
-            text-align: right; 
-            margin-bottom: 5px; 
-            color: var(--accent); 
-            text-shadow: 0 0 5px var(--accent);
-        }
-
+        .evidence-tag { background: rgba(0,10,20,0.8); border-left: 5px solid var(--accent); padding: 15px; margin-bottom: 15px; position: relative; border-radius: 0 4px 4px 0; }
+        #uplink-status { font-size: 0.6rem; text-align: right; margin-bottom: 5px; color: var(--accent); text-shadow: 0 0 5px var(--accent); }
         .search-container { position: relative; }
-        .suggestions { 
-            position: absolute; top: 100%; left: 0; right: 0; 
-            background: #0a151f; border: 1px solid var(--accent); z-index: 100;
-            max-height: 200px; overflow-y: auto; display: none;
-        }
-        .suggestion-item { padding: 15px; border-bottom: 1px solid var(--border); }
-
+        .suggestions { position: absolute; top: 100%; left: 0; right: 0; background: #0a151f; border: 1px solid var(--accent); z-index: 100; max-height: 250px; overflow-y: auto; display: none; box-shadow: 0 10px 30px #000; }
+        .suggestion-item { padding: 15px; border-bottom: 1px solid var(--border); cursor: pointer; }
+        .suggestion-item:hover { background: var(--accent); color: #000; }
         .btn-danger { width: 100%; color: var(--danger); border: 1px solid var(--danger); margin-top: 20px; font-size: 0.7rem; opacity: 0.5; }
     </style>
 </head>
@@ -150,196 +49,123 @@
 
 <div class="hud-container">
     <div class="module">
-        <h2>[ APSD COMMAND TERMINAL ]</h2>
-        <div id="uplink-status">SYSTEM_ONLINE // UPLINK_STABLE</div>
+        <h2>[ COMMAND TERMINAL ]</h2>
+        <div id="uplink-status">SYSTEM_READY // UPLINK_STABLE</div>
         <div style="display:flex; gap:10px;">
-            <div style="flex:1">
-                <label>ENFORCER_ID</label>
-                <input type="text" id="officer" placeholder="Badge#" onchange="saveOfc()">
-            </div>
-            <div style="flex:1">
-                <label>SUBJECT_NAME</label>
-                <input type="text" id="suspect" placeholder="Target">
-            </div>
+            <div style="flex:1"><label>OFFICER_ID</label><input type="text" id="officer" placeholder="Badge" onchange="saveOfc()"></div>
+            <div style="flex:1"><label>SUBJECT</label><input type="text" id="suspect" placeholder="Name"></div>
         </div>
-
         <label>ASSET_SCANNER</label>
-        <div class="search-container">
-            <input type="text" id="assetSearch" placeholder="Scanning database..." onkeyup="filterAssets()">
-            <div id="suggestionBox" class="suggestions"></div>
-        </div>
-
-        <label>QUANTITY_SELECT</label>
-        <div style="display:flex; gap:5px;">
-            <button class="btn" style="flex:1" onclick="setQ(1)">1x</button>
-            <button class="btn" style="flex:1" onclick="setQ(250)">250x</button>
-            <input type="number" id="qty" value="1" style="flex:2; text-align:center;">
-        </div>
-        <button class="btn btn-add" onclick="addConfirmed()">DEPOSIT TO LOCKER</button>
+        <div class="search-container"><input type="text" id="assetSearch" placeholder="Type to search assets..." onkeyup="filterAssets()"><div id="suggestionBox" class="suggestions"></div></div>
+        <label>QUANTITY</label>
+        <div style="display:flex; gap:5px;"><button class="btn" style="flex:1" onclick="setQ(1)">1x</button><button class="btn" style="flex:1" onclick="setQ(250)">250x</button><input type="number" id="qty" value="1" style="flex:2; text-align:center;"></div>
+        <button class="btn btn-add" onclick="addConfirmed()">ADD TO MANIFEST</button>
     </div>
 
     <div class="module">
         <h2>[ SEIZURE MANIFEST ]</h2>
-        <table id="manifestTable">
-            <thead><tr><th>ASSET</th><th>QTY</th><th>VAL_EST</th><th>X</th></tr></thead>
-            <tbody id="lockerBody"></tbody>
-        </table>
-        
+        <table id="manifestTable"><thead><tr><th>ASSET</th><th>QTY</th><th>EST_VALUE</th><th>X</th></tr></thead><tbody id="lockerBody"></tbody></table>
         <div style="margin-top:20px; border-top:1px solid var(--border); padding-top:20px; display:flex; justify-content:space-between; align-items:center;">
-            <div>
-                <label style="margin:0">TOTAL_RECOVERED</label>
-                <div id="totalDisplay" style="font-size:1.4rem; font-weight:bold; color:var(--success);">0 U</div>
-            </div>
+            <div><label style="margin:0">TOTAL_RECOVERED</label><div id="totalDisplay" style="font-size:1.4rem; color:var(--success); font-weight:bold;">0 U</div></div>
             <button class="btn btn-log" id="logBtn" onclick="archive()">SECURE & LOG</button>
         </div>
     </div>
 
     <div class="module">
-        <h2>[ APSD EVIDENCE ROOM ]</h2>
-        <div id="logBody"></div>
+        <h2>[ APSD EVIDENCE ROOM ]</h2><div id="logBody"></div>
         <button class="btn btn-danger" onclick="wipeAll()">PURGE ALL RECORDS</button>
     </div>
 </div>
 
 <script>
-    // MANHATTAN UPLINK CONFIG
     const UPLINK_URL = 'https://script.google.com/macros/s/AKfycbzVs4oRFjYlZq0_1TEYw3AVx8CZVcVZvO04Gf8CeYjkFfZFSowJndnI4bY_7KTiN-xaRg/exec';
 
     const database = [
-        { name: "Classified Intel", val: 5000000 }, { name: "Contraband Tech", val: 120000 },
-        { name: "Illegal Circuitry", val: 85000 }, { name: "Raw Data Core", val: 250000 },
-        { name: "Narcotics Bundle", val: 15000 }, { name: "Weapon Hardware", val: 350000 }
+        // CONTRA-ITEMS
+        { name: "AI Valve", val: 12000000 }, { name: "Stasis Device", val: 15600000 }, { name: "Fusion Ignitor", val: 15600000 },
+        { name: "NipNip Buds", val: 17776 }, { name: "GekNip", val: 20000 }, { name: "Gravitino Ball", val: 12500 },
+        { name: "Hadal Core", val: 61000 }, { name: "Larval Core", val: 61000 }, { name: "Walker Brain", val: 35000 },
+        { name: "Shattered Glass", val: 500 }, { name: "Forbidden Exosuit Module", val: 480 },
+        // PRECIOUS METALS
+        { name: "Gold", val: 353 }, { name: "Platinum", val: 505 }, { name: "Silver", val: 101 },
+        { name: "Activated Indium", val: 949 }, { name: "Activated Emeril", val: 696 }, { name: "Activated Cadmium", val: 450 },
+        { name: "Storm Crystal", val: 129150 }, { name: "Activated Copper", val: 245 },
+        // TECH & COMPONENTS
+        { name: "Circuit Board", val: 916250 }, { name: "Poly Fibre", val: 130000 }, { name: "Heat Capacitor", val: 180000 },
+        { name: "Superconductor", val: 1500000 }, { name: "Cryo-Pump", val: 1500000 }, { name: "Quantum Processor", val: 4400000 },
+        { name: "Liquid Explosive", val: 800500 }, { name: "Portable Reactor", val: 4200000 },
+        // RAW ELEMENTS
+        { name: "Pure Ferrite", val: 28 }, { name: "Magnetised Ferrite", val: 82 }, { name: "Carbon", val: 7 },
+        { name: "Condensed Carbon", val: 24 }, { name: "Sodium Nitrate", val: 41 }, { name: "Chromatic Metal", val: 245 },
+        // CULINARY/MISC
+        { name: "Delicious Vegetable Stew", val: 18000 }, { name: "Meaty Stew", val: 15000 }, { name: "Fibrous Herb", val: 10 }
     ];
 
-    let locker = [];
-    let archiveData = JSON.parse(localStorage.getItem('gpd_apsd_v3_data')) || [];
-    let selectedItem = null;
-
-    window.onload = () => {
-        document.getElementById('officer').value = localStorage.getItem('gpd_ofc_name') || '';
-        renderArchive();
-    };
-
+    let locker = [], archiveData = JSON.parse(localStorage.getItem('gpd_apsd_v3_data')) || [], selectedItem = null;
+    window.onload = () => { document.getElementById('officer').value = localStorage.getItem('gpd_ofc_name') || ''; renderArchive(); };
     function saveOfc() { localStorage.setItem('gpd_ofc_name', document.getElementById('officer').value); }
     function setQ(n) { document.getElementById('qty').value = n; }
 
     function filterAssets() {
         const input = document.getElementById('assetSearch').value.toLowerCase();
-        const box = document.getElementById('suggestionBox');
-        box.innerHTML = '';
+        const box = document.getElementById('suggestionBox'); box.innerHTML = '';
         if (input.length < 1) { box.style.display = 'none'; return; }
-        const filtered = database.filter(item => item.name.toLowerCase().includes(input));
-        if (filtered.length > 0) {
-            box.style.display = 'block';
-            filtered.forEach(item => {
-                const div = document.createElement('div');
-                div.className = 'suggestion-item';
-                div.innerText = item.name;
-                div.onclick = () => {
-                    document.getElementById('assetSearch').value = item.name;
-                    selectedItem = item;
-                    box.style.display = 'none';
-                };
-                box.appendChild(div);
-            });
-        }
+        database.filter(i => i.name.toLowerCase().includes(input)).forEach(item => {
+            const div = document.createElement('div'); div.className = 'suggestion-item'; div.innerText = item.name;
+            div.onclick = () => { document.getElementById('assetSearch').value = item.name; selectedItem = item; box.style.display = 'none'; };
+            box.appendChild(div);
+        });
+        box.style.display = 'block';
     }
 
     function addConfirmed() {
-        const nameInput = document.getElementById('assetSearch').value;
-        const item = selectedItem || database.find(x => x.name.toLowerCase() === nameInput.toLowerCase());
+        const item = selectedItem || database.find(x => x.name.toLowerCase() === document.getElementById('assetSearch').value.toLowerCase());
         if(!item) return;
         const q = parseInt(document.getElementById('qty').value) || 1;
-        const existing = locker.find(x => x.name === item.name);
-        if (existing) existing.qty += q;
-        else locker.push({ name: item.name, val: item.val, qty: q });
-        document.getElementById('assetSearch').value = '';
-        selectedItem = null;
-        updateLocker();
+        const exist = locker.find(x => x.name === item.name);
+        if (exist) exist.qty += q; else locker.push({ name: item.name, val: item.val, qty: q });
+        document.getElementById('assetSearch').value = ''; selectedItem = null; updateLocker();
     }
 
     function updateLocker() {
-        const body = document.getElementById('lockerBody');
-        let total = 0; body.innerHTML = '';
+        const body = document.getElementById('lockerBody'); let total = 0; body.innerHTML = '';
         locker.forEach((item, idx) => {
             const sum = item.val * item.qty; total += sum;
-            body.innerHTML += `<tr>
-                <td>${item.name}</td>
-                <td>x${item.qty}</td>
-                <td style="color:var(--success)">${sum.toLocaleString()}</td>
-                <td style="color:var(--danger); cursor:pointer; font-weight:bold;" onclick="locker.splice(${idx},1);updateLocker();">[X]</td>
-            </tr>`;
+            body.innerHTML += `<tr><td>${item.name}</td><td>x${item.qty}</td><td style="color:var(--success)">${sum.toLocaleString()}</td><td style="color:var(--danger); cursor:pointer;" onclick="locker.splice(${idx},1);updateLocker();">[X]</td></tr>`;
         });
         document.getElementById('totalDisplay').innerText = total.toLocaleString() + " U";
     }
 
     async function archive() {
         if (!locker.length) return;
-        const btn = document.getElementById('logBtn');
-        const status = document.getElementById('uplink-status');
-        
-        const caseRecord = {
-            ofc: document.getElementById('officer').value || "ANON_ENFORCER",
-            sus: document.getElementById('suspect').value || "UNIDENTIFIED",
-            items: [...locker],
-            total: document.getElementById('totalDisplay').innerText,
-            date: new Date().toLocaleString()
+        const btn = document.getElementById('logBtn'); const status = document.getElementById('uplink-status');
+        const record = {
+            ofc: document.getElementById('officer').value || "ANON", sus: document.getElementById('suspect').value || "UNIDENTIFIED",
+            items: [...locker], total: document.getElementById('totalDisplay').innerText, date: new Date().toLocaleString()
         };
-
-        archiveData.unshift(caseRecord);
-        localStorage.setItem('gpd_apsd_v3_data', JSON.stringify(archiveData));
-        
-        btn.innerText = "UPLINKING...";
-        status.innerText = "TRANSFERRING_DATA_TO_MANHATTAN...";
-
+        archiveData.unshift(record); localStorage.setItem('gpd_apsd_v3_data', JSON.stringify(archiveData));
+        btn.innerText = "UPLINKING..."; status.innerText = "TRANSFERRING_DATA_TO_MANHATTAN...";
         try {
-            const formData = new URLSearchParams();
-            formData.append('officer', caseRecord.ofc);
-            formData.append('suspect', caseRecord.sus);
-            formData.append('timestamp', caseRecord.date);
-            formData.append('manifest', caseRecord.items.map(i => `${i.qty}x ${i.name}`).join(", "));
-
-            await fetch(UPLINK_URL, { method: 'POST', mode: 'no-cors', body: formData });
-            status.innerText = "UPLINK_SUCCESSFUL";
-            status.style.color = "var(--success)";
-        } catch (e) {
-            status.innerText = "UPLINK_OFFLINE_LOCAL_MODE";
-            status.style.color = "var(--danger)";
-        }
-
-        locker = []; updateLocker(); renderArchive();
-        document.getElementById('suspect').value = '';
-        btn.innerText = "SECURE & LOG";
-        setTimeout(() => { 
-            status.innerText = "SYSTEM_ONLINE // UPLINK_STABLE"; 
-            status.style.color = "var(--accent)";
-        }, 3000);
+            const p = new URLSearchParams(); p.append('officer', record.ofc); p.append('suspect', record.sus);
+            p.append('timestamp', record.date); p.append('manifest', record.items.map(i => `${i.qty}x ${i.name}`).join(", "));
+            await fetch(UPLINK_URL, { method: 'POST', mode: 'no-cors', body: p });
+            status.innerText = "UPLINK_SUCCESSFUL"; status.style.color = "var(--success)";
+        } catch (e) { status.innerText = "UPLINK_OFFLINE"; status.style.color = "var(--danger)"; }
+        locker = []; updateLocker(); renderArchive(); document.getElementById('suspect').value = '';
+        btn.innerText = "SECURE & LOG"; setTimeout(() => { status.innerText = "SYSTEM_READY // UPLINK_STABLE"; status.style.color = "var(--accent)"; }, 3000);
     }
 
     function renderArchive() {
-        const body = document.getElementById('logBody');
-        body.innerHTML = '';
+        const body = document.getElementById('logBody'); body.innerHTML = '';
         archiveData.forEach((h, idx) => {
-            const list = h.items.map(i => `${i.qty}x ${i.name}`).join(", ");
-            body.innerHTML += `<div class="evidence-tag">
-                <div style="color:var(--accent); font-size:0.6rem; letter-spacing:1px;">TAG#${idx} | ${h.ofc} | ${h.date}</div>
-                <div style="font-weight:bold; margin:5px 0;">SUSPECT: ${h.sus}</div>
-                <div style="opacity:0.7; font-size:0.7rem; border-left: 1px solid var(--border); padding-left:10px;">${list}</div>
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
-                    <span style="color:var(--success); font-weight:bold;">${h.total}</span>
-                    <button class="btn" style="padding:5px 10px; font-size:0.6rem;" onclick="retrieve(${idx})">RETRIEVE_ASSETS</button>
-                </div>
-            </div>`;
+            body.innerHTML += `<div class="evidence-tag"><div style="color:var(--accent); font-size:0.6rem;">TAG_ID: #${idx} | ${h.ofc} | ${h.date}</div><div style="font-weight:bold; margin:5px 0;">SUSPECT: ${h.sus}</div><div style="opacity:0.7; font-size:0.7rem; line-height:1.4;">${h.items.map(i => i.qty+'x '+i.name).join(", ")}</div><div style="display:flex; justify-content:space-between; margin-top:10px;"><span style="color:var(--success); font-weight:bold;">${h.total}</span><button class="btn" style="padding:5px 10px; font-size:0.6rem;" onclick="retrieve(${idx})">RETRIEVE_ASSETS</button></div></div>`;
         });
     }
 
     function retrieve(idx) {
-        const data = archiveData[idx];
-        document.getElementById('suspect').value = data.sus;
-        locker = [...data.items];
-        archiveData.splice(idx, 1);
-        localStorage.setItem('gpd_apsd_v3_data', JSON.stringify(archiveData));
-        updateLocker(); renderArchive();
+        const data = archiveData[idx]; document.getElementById('suspect').value = data.sus;
+        locker = [...data.items]; archiveData.splice(idx, 1);
+        localStorage.setItem('gpd_apsd_v3_data', JSON.stringify(archiveData)); updateLocker(); renderArchive();
     }
 
     function wipeAll() { if(confirm("PURGE ALL EVIDENCE DATA?")) { archiveData = []; localStorage.removeItem('gpd_apsd_v3_data'); renderArchive(); } }
