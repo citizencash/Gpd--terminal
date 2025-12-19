@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>APSD | EVIDENCE ROOM v3.2</title>
+    <title>APSD | EVIDENCE ROOM v3.5</title>
     <style>
         :root { 
             --bg: #05080a; --glass: rgba(12, 20, 28, 0.95); --border: #2a3f52; 
@@ -25,7 +25,7 @@
             background: var(--glass); border: 1px solid var(--border); padding: 20px; position: relative;
             box-shadow: inset 0 0 15px rgba(0,242,255,0.1); clip-path: polygon(0 0, 95% 0, 100% 5%, 100% 100%, 5% 100%, 0 95%);
         }
-        .module::after { content: "APSD_ENCRYPTED"; position: absolute; top: 5px; right: 15px; font-size: 0.5rem; color: var(--border); }
+        .module::after { content: "APSD_HYBRID_LINK"; position: absolute; top: 5px; right: 15px; font-size: 0.5rem; color: var(--border); }
         h2 { color: var(--accent); font-size: 1rem; text-transform: uppercase; letter-spacing: 3px; margin: 0 0 20px 0; display: flex; align-items: center; }
         h2::before { content: "► "; font-size: 0.8rem; margin-right: 10px; }
         label { display: block; font-size: 0.65rem; color: var(--accent); margin-bottom: 8px; text-transform: uppercase; font-weight: bold; }
@@ -49,14 +49,17 @@
 
 <div class="hud-container">
     <div class="module">
-        <h2>[ COMMAND TERMINAL ]</h2>
+        <h2>[ APSD COMMAND TERMINAL ]</h2>
         <div id="uplink-status">SYSTEM_READY // UPLINK_STABLE</div>
         <div style="display:flex; gap:10px;">
             <div style="flex:1"><label>OFFICER_ID</label><input type="text" id="officer" placeholder="Badge" onchange="saveOfc()"></div>
             <div style="flex:1"><label>SUBJECT</label><input type="text" id="suspect" placeholder="Name"></div>
         </div>
-        <label>ASSET_SCANNER</label>
-        <div class="search-container"><input type="text" id="assetSearch" placeholder="Type to search assets..." onkeyup="filterAssets()"><div id="suggestionBox" class="suggestions"></div></div>
+        <label>ASSET_SCANNER (TYPE OR SELECT)</label>
+        <div class="search-container">
+            <input type="text" id="assetSearch" placeholder="Enter asset name..." onkeyup="filterAssets()">
+            <div id="suggestionBox" class="suggestions"></div>
+        </div>
         <label>QUANTITY</label>
         <div style="display:flex; gap:5px;"><button class="btn" style="flex:1" onclick="setQ(1)">1x</button><button class="btn" style="flex:1" onclick="setQ(250)">250x</button><input type="number" id="qty" value="1" style="flex:2; text-align:center;"></div>
         <button class="btn btn-add" onclick="addConfirmed()">ADD TO MANIFEST</button>
@@ -81,24 +84,14 @@
     const UPLINK_URL = 'https://script.google.com/macros/s/AKfycbzVs4oRFjYlZq0_1TEYw3AVx8CZVcVZvO04Gf8CeYjkFfZFSowJndnI4bY_7KTiN-xaRg/exec';
 
     const database = [
-        // CONTRA-ITEMS
         { name: "AI Valve", val: 12000000 }, { name: "Stasis Device", val: 15600000 }, { name: "Fusion Ignitor", val: 15600000 },
-        { name: "NipNip Buds", val: 17776 }, { name: "GekNip", val: 20000 }, { name: "Gravitino Ball", val: 12500 },
+        { name: "NipNip Buds", val: 17776 }, { name: "GekNip", val: 20000 }, { name: "Banned Weapons", val: 85000 },
+        { name: "Counterfeit Circuits", val: 65000 }, { name: "Gravitino Ball", val: 12500 }, { name: "Storm Crystal", val: 129150 },
         { name: "Hadal Core", val: 61000 }, { name: "Larval Core", val: 61000 }, { name: "Walker Brain", val: 35000 },
-        { name: "Shattered Glass", val: 500 }, { name: "Forbidden Exosuit Module", val: 480 },
-        // PRECIOUS METALS
         { name: "Gold", val: 353 }, { name: "Platinum", val: 505 }, { name: "Silver", val: 101 },
-        { name: "Activated Indium", val: 949 }, { name: "Activated Emeril", val: 696 }, { name: "Activated Cadmium", val: 450 },
-        { name: "Storm Crystal", val: 129150 }, { name: "Activated Copper", val: 245 },
-        // TECH & COMPONENTS
-        { name: "Circuit Board", val: 916250 }, { name: "Poly Fibre", val: 130000 }, { name: "Heat Capacitor", val: 180000 },
-        { name: "Superconductor", val: 1500000 }, { name: "Cryo-Pump", val: 1500000 }, { name: "Quantum Processor", val: 4400000 },
-        { name: "Liquid Explosive", val: 800500 }, { name: "Portable Reactor", val: 4200000 },
-        // RAW ELEMENTS
-        { name: "Pure Ferrite", val: 28 }, { name: "Magnetised Ferrite", val: 82 }, { name: "Carbon", val: 7 },
-        { name: "Condensed Carbon", val: 24 }, { name: "Sodium Nitrate", val: 41 }, { name: "Chromatic Metal", val: 245 },
-        // CULINARY/MISC
-        { name: "Delicious Vegetable Stew", val: 18000 }, { name: "Meaty Stew", val: 15000 }, { name: "Fibrous Herb", val: 10 }
+        { name: "Activated Indium", val: 949 }, { name: "Indium", val: 464 }, { name: "Chromatic Metal", val: 245 },
+        { name: "Pure Ferrite", val: 28 }, { name: "Carbon", val: 7 }, { name: "Sodium Nitrate", val: 41 },
+        { name: "Ancient Bone", val: 150000 }, { name: "Salvaged Scrap", val: 200000 }, { name: "Salvaged Data", val: 52000 }
     ];
 
     let locker = [], archiveData = JSON.parse(localStorage.getItem('gpd_apsd_v3_data')) || [], selectedItem = null;
@@ -110,21 +103,41 @@
         const input = document.getElementById('assetSearch').value.toLowerCase();
         const box = document.getElementById('suggestionBox'); box.innerHTML = '';
         if (input.length < 1) { box.style.display = 'none'; return; }
-        database.filter(i => i.name.toLowerCase().includes(input)).forEach(item => {
-            const div = document.createElement('div'); div.className = 'suggestion-item'; div.innerText = item.name;
-            div.onclick = () => { document.getElementById('assetSearch').value = item.name; selectedItem = item; box.style.display = 'none'; };
-            box.appendChild(div);
-        });
-        box.style.display = 'block';
+        const matches = database.filter(i => i.name.toLowerCase().includes(input));
+        if(matches.length > 0) {
+            box.style.display = 'block';
+            matches.slice(0, 10).forEach(item => {
+                const div = document.createElement('div'); div.className = 'suggestion-item'; div.innerText = item.name;
+                div.onclick = () => { document.getElementById('assetSearch').value = item.name; selectedItem = item; box.style.display = 'none'; };
+                box.appendChild(div);
+            });
+        } else { box.style.display = 'none'; }
     }
 
     function addConfirmed() {
-        const item = selectedItem || database.find(x => x.name.toLowerCase() === document.getElementById('assetSearch').value.toLowerCase());
-        if(!item) return;
+        const rawName = document.getElementById('assetSearch').value.trim();
+        if (!rawName) return;
+
+        // CHECK IF IT'S IN THE DATABASE FIRST
+        let item = selectedItem || database.find(x => x.name.toLowerCase() === rawName.toLowerCase());
+        
+        // IF NOT IN DB, CREATE A CUSTOM ASSET
+        if(!item) {
+            item = { name: rawName, val: 0 }; 
+        }
+
         const q = parseInt(document.getElementById('qty').value) || 1;
-        const exist = locker.find(x => x.name === item.name);
-        if (exist) exist.qty += q; else locker.push({ name: item.name, val: item.val, qty: q });
-        document.getElementById('assetSearch').value = ''; selectedItem = null; updateLocker();
+        const exist = locker.find(x => x.name.toLowerCase() === item.name.toLowerCase());
+        
+        if (exist) {
+            exist.qty += q;
+        } else {
+            locker.push({ name: item.name, val: item.val, qty: q });
+        }
+
+        document.getElementById('assetSearch').value = ''; 
+        selectedItem = null; 
+        updateLocker();
     }
 
     function updateLocker() {
@@ -144,7 +157,7 @@
             items: [...locker], total: document.getElementById('totalDisplay').innerText, date: new Date().toLocaleString()
         };
         archiveData.unshift(record); localStorage.setItem('gpd_apsd_v3_data', JSON.stringify(archiveData));
-        btn.innerText = "UPLINKING..."; status.innerText = "TRANSFERRING_DATA_TO_MANHATTAN...";
+        btn.innerText = "UPLINKING..."; status.innerText = "TRANSFERRING_TO_MANHATTAN...";
         try {
             const p = new URLSearchParams(); p.append('officer', record.ofc); p.append('suspect', record.sus);
             p.append('timestamp', record.date); p.append('manifest', record.items.map(i => `${i.qty}x ${i.name}`).join(", "));
@@ -158,7 +171,7 @@
     function renderArchive() {
         const body = document.getElementById('logBody'); body.innerHTML = '';
         archiveData.forEach((h, idx) => {
-            body.innerHTML += `<div class="evidence-tag"><div style="color:var(--accent); font-size:0.6rem;">TAG_ID: #${idx} | ${h.ofc} | ${h.date}</div><div style="font-weight:bold; margin:5px 0;">SUSPECT: ${h.sus}</div><div style="opacity:0.7; font-size:0.7rem; line-height:1.4;">${h.items.map(i => i.qty+'x '+i.name).join(", ")}</div><div style="display:flex; justify-content:space-between; margin-top:10px;"><span style="color:var(--success); font-weight:bold;">${h.total}</span><button class="btn" style="padding:5px 10px; font-size:0.6rem;" onclick="retrieve(${idx})">RETRIEVE_ASSETS</button></div></div>`;
+            body.innerHTML += `<div class="evidence-tag"><div style="color:var(--accent); font-size:0.6rem;">TAG_ID: #${idx} | ${h.ofc} | ${h.date}</div><div style="font-weight:bold; margin:5px 0;">SUSPECT: ${h.sus}</div><div style="opacity:0.7; font-size:0.7rem;">${h.items.map(i => i.qty+'x '+i.name).join(", ")}</div><div style="display:flex; justify-content:space-between; margin-top:10px;"><span style="color:var(--success); font-weight:bold;">${h.total}</span><button class="btn" style="padding:5px 10px; font-size:0.6rem;" onclick="retrieve(${idx})">RETRIEVE</button></div></div>`;
         });
     }
 
