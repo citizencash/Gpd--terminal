@@ -43,7 +43,8 @@
         table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.8rem; }
         th { text-align: left; color: var(--accent); padding: 10px; border-bottom: 1px solid var(--border); }
         td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .log-entry { background: rgba(0,0,0,0.4); border: 1px solid var(--border); padding: 12px; margin-bottom: 10px; border-left: 4px solid var(--accent); font-size: 0.75rem; word-wrap: break-word; }
+        .log-entry { background: rgba(0,0,0,0.4); border: 1px solid var(--border); padding: 12px; margin-bottom: 10px; border-left: 4px solid var(--accent); font-size: 0.75rem; word-wrap: break-word; position: relative;}
+        .glitch-alert { border-left: 4px solid var(--danger) !important; background: rgba(255, 60, 60, 0.05); }
     </style>
 </head>
 <body>
@@ -171,14 +172,14 @@
         if (!locker.length) return alert("Manifest is empty.");
         const logString = locker.map(i => `${i.qty}x ${i.name}`).join(", ");
         const totalVal = document.getElementById('totalDisplay').innerText;
-        const finalTimestamp = `SEIZED: ${logString} (Total: ${totalVal})`;
+        const finalDetails = `SEIZED: ${logString} (Total: ${totalVal})`;
 
         try {
             const response = await fetch(API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    data: [{ officer: ofc, suspect: sus, timestamp: finalTimestamp }]
+                    data: [{ officer: ofc, suspect: sus, timestamp: finalDetails }]
                 })
             });
             if(response.ok) {
@@ -189,31 +190,20 @@
         } catch (e) { alert("BROADCAST FAILED"); }
     }
 
-    // THE IMPROVED TRIPLE-CHECK DISPOSAL
     async function disposeRecord(ofc, sus, time) {
-        if(!confirm("DISPOSE OF EVIDENCE & CLEAR LOG?")) return;
+        if(!confirm("CONFIRM DESTRUCTION OF RECORD?")) return;
         
         try {
-            // STEP 1: Try deleting by the long Timestamp (The unique item list)
+            // STEP 1: Try deleting by the specific item string (Fingerprint)
             let res = await fetch(`${API_URL}/timestamp/${encodeURIComponent(time)}`, {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' }
             });
             let result = await res.json();
 
-            // STEP 2: If that fails, try deleting by Suspect name
-            if (result.deleted === 0) {
-                let searchName = (sus === "TARGET" || sus === "undefined") ? "" : sus;
-                res = await fetch(`${API_URL}/suspect/${encodeURIComponent(searchName)}`, {
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json' }
-                });
-                result = await res.json();
-            }
-
-            // STEP 3: If still nothing, try deleting by Officer name as a last resort
-            if (result.deleted === 0) {
-                res = await fetch(`${API_URL}/officer/${encodeURIComponent(ofc)}`, {
+            // STEP 2: If it's a blank "TARGET", hunt for empty suspect cells
+            if (result.deleted === 0 && (sus === "TARGET" || !sus || sus === "undefined")) {
+                res = await fetch(`${API_URL}/suspect/`, { 
                     method: 'DELETE',
                     headers: { 'Content-Type': 'application/json' }
                 });
@@ -221,9 +211,9 @@
             }
 
             if(result.deleted > 0) {
-                alert("SUCCESS: RECORD PURGED");
+                alert("SUCCESS: ARCHIVE PURGED");
             } else {
-                alert("SYSTEM: RECORD ALREADY CLEAR OR NOT FOUND");
+                alert("SYSTEM: RECORD ALREADY REMOVED");
             }
             renderArchive();
         } catch (e) { 
@@ -241,14 +231,18 @@
             if(!data.length) { body.innerHTML = "DATABASE EMPTY."; return; }
             data.reverse().forEach(h => {
                 const o = h.officer || h.Officer || "UNKNOWN";
-                const s = h.suspect || h.Suspect || "TARGET";
+                const s = h.suspect || h.Suspect || ""; 
                 const t = h.timestamp || h.Timestamp || "NO DATA";
                 
-                body.innerHTML += `<div class="log-entry">
+                // If suspect is blank, we label it TARGET for hunting
+                const displayName = s ? s : "TARGET";
+                const glitchClass = !s ? "glitch-alert" : "";
+
+                body.innerHTML += `<div class="log-entry ${glitchClass}">
                     <div style="color:var(--accent); font-size:0.6rem;">${o} | LOGGED</div>
-                    <div style="font-weight:bold;">SUSPECT: ${s}</div>
+                    <div style="font-weight:bold;">SUSPECT: ${displayName}</div>
                     <div style="opacity:0.8; font-size:0.65rem; margin-top:4px;">${t}</div>
-                    <button class="btn btn-dispose" onclick="disposeRecord('${o}', '${s}', '${t}')">DISPOSE EVIDENCE</button>
+                    <button class="btn btn-dispose" onclick="disposeRecord('${o}', '${displayName}', '${t}')">DISPOSE EVIDENCE</button>
                 </div>`;
             });
         } catch (e) { body.innerHTML = "OFFLINE: CHECK CONNECTION"; }
