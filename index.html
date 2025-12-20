@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>APSD | EVIDENCE TERMINAL v3.6</title>
+    <title>APSD | EVIDENCE TERMINAL v3.6.3</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <style>
@@ -207,7 +207,18 @@
         localStorage.setItem('gpd_apsd_v3_data', JSON.stringify(archiveData)); updateLocker(); renderArchive();
     }
 
-    function wipeAll() { if(confirm("PURGE ALL DATA?")) { archiveData = []; localStorage.removeItem('gpd_apsd_v3_data'); renderArchive(); } }
+    function wipeAll() { 
+        const pin = prompt("AUTHORIZED ACCESS ONLY: ENTER SECURITY KEY TO PURGE VAULT");
+        if (pin === "5622") {
+            if(confirm("FINAL WARNING: PURGE ALL ARCHIVED DATA?")) {
+                archiveData = []; 
+                localStorage.removeItem('gpd_apsd_v3_data'); 
+                renderArchive(); 
+            }
+        } else {
+            alert("ACCESS DENIED: INVALID SECURITY KEY.");
+        }
+    }
 </script>
 </body>
 </html>
