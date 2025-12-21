@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>APSD | EVIDENCE TERMINAL v3.6.3</title>
+    <title>APSD | EVIDENCE TERMINAL v3.6.4</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <style>
@@ -70,7 +70,7 @@
         <h1 class="font-black italic text-cyan-400 uppercase tracking-tighter leading-none">APSD EVIDENCE ROOM</h1>
         <div class="flex items-center gap-2 mt-2 justify-center lg:justify-start">
             <span class="status-pulse"></span>
-            <span id="uplink-status" class="text-[9px] font-black text-cyan-600 uppercase tracking-widest">System_Online // Encrypted_Uplink_v3.6</span>
+            <span id="uplink-status" class="text-[9px] font-black text-cyan-600 uppercase tracking-widest">System_Online // Encrypted_Uplink_v3.6.4</span>
         </div>
     </header>
 
@@ -96,8 +96,8 @@
 
             <div class="flex flex-col md:flex-row gap-4">
                 <div class="flex-1 flex gap-2">
-                    <button class="btn-cyan px-6 rounded-lg text-xs" onclick="setQ(9999)">9999x</button>
-                    <input type="number" id="qty" value="1" class="w-full text-center font-black rounded-lg min-w-0 px-2">
+                    <button class="btn-cyan px-6 rounded-lg text-xs" onclick="setQ('9,999')">9999x</button>
+                    <input type="text" id="qty" value="1" oninput="formatQty(this)" class="w-full text-center font-black rounded-lg min-w-0 px-2">
                 </div>
                 <button onclick="addConfirmed()" class="btn-cyan py-3 px-8 rounded-lg text-xs whitespace-nowrap">ADD TO MANIFEST</button>
             </div>
@@ -148,7 +148,17 @@
     let locker = [], archiveData = JSON.parse(localStorage.getItem('gpd_apsd_v3_data')) || [], selectedItem = null;
     window.onload = () => { document.getElementById('officer').value = localStorage.getItem('gpd_ofc_name') || ''; renderArchive(); };
     function saveOfc() { localStorage.setItem('gpd_ofc_name', document.getElementById('officer').value); }
-    function setQ(n) { document.getElementById('qty').value = n; }
+    
+    // NEW: Currency Formatting Protocol
+    function formatQty(input) {
+        let value = input.value.replace(/\D/g, "");
+        if (value === "") { input.value = ""; return; }
+        input.value = Number(value).toLocaleString('en-US');
+    }
+
+    function setQ(n) { 
+        document.getElementById('qty').value = n; 
+    }
 
     function filterAssets() {
         const input = document.getElementById('assetSearch').value.toLowerCase();
@@ -170,7 +180,8 @@
         const name = document.getElementById('assetSearch').value.trim();
         if (!name) return;
         let item = selectedItem || database.find(x => x.name.toLowerCase() === name.toLowerCase()) || { name: name, val: 0 };
-        const q = parseInt(document.getElementById('qty').value) || 1;
+        // Scrub commas for calculation
+        const q = parseInt(document.getElementById('qty').value.replace(/,/g, '')) || 1;
         const exist = locker.find(x => x.name.toLowerCase() === item.name.toLowerCase());
         if (exist) exist.qty += q; else locker.push({ name: item.name, val: item.val, qty: q });
         document.getElementById('assetSearch').value = ''; selectedItem = null; updateLocker();
@@ -180,7 +191,7 @@
         const body = document.getElementById('lockerBody'); let total = 0; body.innerHTML = '';
         locker.forEach((item, idx) => {
             const sum = item.val * item.qty; total += sum;
-            body.innerHTML += `<tr class="border-b border-white/5"><td class="p-3 text-white uppercase">${item.name}</td><td class="p-3 text-center text-cyan-400">x${item.qty}</td><td class="p-3 text-right text-green-500">${sum.toLocaleString()}</td><td class="p-3 text-center"><i onclick="locker.splice(${idx},1);updateLocker();" class="fa-solid fa-xmark text-red-900 cursor-pointer"></i></td></tr>`;
+            body.innerHTML += `<tr class="border-b border-white/5"><td class="p-3 text-white uppercase">${item.name}</td><td class="p-3 text-center text-cyan-400">x${item.qty.toLocaleString()}</td><td class="p-3 text-right text-green-500">${sum.toLocaleString()}</td><td class="p-3 text-center"><i onclick="locker.splice(${idx},1);updateLocker();" class="fa-solid fa-xmark text-red-900 cursor-pointer"></i></td></tr>`;
         });
         document.getElementById('totalDisplay').innerText = total.toLocaleString() + " U";
     }
@@ -190,14 +201,14 @@
         const record = { ofc: document.getElementById('officer').value || "ANON", sus: document.getElementById('suspect').value || "UNIDENTIFIED", items: [...locker], total: document.getElementById('totalDisplay').innerText, date: new Date().toLocaleString() };
         archiveData.unshift(record); localStorage.setItem('gpd_apsd_v3_data', JSON.stringify(archiveData));
         locker = []; updateLocker(); renderArchive(); document.getElementById('suspect').value = '';
-        const p = new URLSearchParams(); p.append('officer', record.ofc); p.append('suspect', record.sus); p.append('timestamp', record.date); p.append('manifest', record.items.map(i => `${i.qty}x ${i.name}`).join(", "));
+        const p = new URLSearchParams(); p.append('officer', record.ofc); p.append('suspect', record.sus); p.append('timestamp', record.date); p.append('manifest', record.items.map(i => `${i.qty.toLocaleString()}x ${i.name}`).join(", "));
         fetch(UPLINK_URL, { method: 'POST', mode: 'no-cors', body: p });
     }
 
     function renderArchive() {
         const body = document.getElementById('logBody'); body.innerHTML = '';
         archiveData.forEach((h, idx) => {
-            body.innerHTML += `<div class="evidence-tag"><div class="flex justify-between text-[7px] text-cyan-700 font-black mb-2 uppercase"><span>#${idx}</span><span>${h.date}</span></div><div class="text-[8px] text-gray-500 font-bold uppercase mb-1">Enforcer: ${h.ofc}</div><div class="text-sm font-black text-white italic uppercase tracking-tighter mb-2 border-b border-gray-900 pb-1">Suspect: ${h.sus}</div><div class="text-[9px] text-gray-400 font-bold mb-3">${h.items.map(i => i.qty+'x '+i.name).join(", ")}</div><div class="flex justify-between items-center"><span class="text-lg font-black text-green-500 italic">${h.total}</span><button class="text-[7px] text-cyan-500 border border-cyan-900 px-2 py-1 rounded" onclick="retrieve(${idx})">RETRIEVE</button></div></div>`;
+            body.innerHTML += `<div class="evidence-tag"><div class="flex justify-between text-[7px] text-cyan-700 font-black mb-2 uppercase"><span>#${idx}</span><span>${h.date}</span></div><div class="text-[8px] text-gray-500 font-bold uppercase mb-1">Enforcer: ${h.ofc}</div><div class="text-sm font-black text-white italic uppercase tracking-tighter mb-2 border-b border-gray-900 pb-1">Suspect: ${h.sus}</div><div class="text-[9px] text-gray-400 font-bold mb-3">${h.items.map(i => i.qty.toLocaleString()+'x '+i.name).join(", ")}</div><div class="flex justify-between items-center"><span class="text-lg font-black text-green-500 italic">${h.total}</span><button class="text-[7px] text-cyan-500 border border-cyan-900 px-2 py-1 rounded" onclick="retrieve(${idx})">RETRIEVE</button></div></div>`;
         });
     }
 
